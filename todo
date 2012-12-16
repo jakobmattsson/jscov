@@ -1,0 +1,3 @@
+* testa så att command-line programmet funkar rekursivt
+* testa så att dollar-tecken i regexpar funkar
+* kanske dra in lite kod som andra skrivit, för att få lite andra stilar att testa

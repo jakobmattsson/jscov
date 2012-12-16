@@ -15,7 +15,3 @@ fs.readdirSync('spec/scaffold').forEach (filename) ->
 
   it "should parse #{filename} the same way as jscoverage", ->
     _.isEqual(actualParse, expectedParse).should.be.true
-
-# testa så att command-line programmet funkar rekursivt
-# testa så att dollar-tecken i regexpar funkar
-# kanske dra in lite kod som andra skrivit, för att få lite andra stilar att testa
