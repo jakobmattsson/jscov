@@ -30,9 +30,9 @@ exports.rewrite = (code, filename) ->
             type: 'Literal'
             value: filename
 
-  parsed = esprima.parse(code, { loc: true })
+  ast = esprima.parse(code, { loc: true })
 
-  escodegen.traverse parsed,
+  escodegen.traverse ast,
     enter: (node) ->
       if ['BlockStatement', 'Program'].indexOf(node.type) != -1
         node.body = _.flatten node.body.map (x) -> [inject(x), x]
@@ -49,17 +49,27 @@ exports.rewrite = (code, filename) ->
           type: 'BlockStatement'
           body: [node.body]
 
-  originalSource = code.split('\n').map((x) -> x.replace(/&/g, '&amp;')).map((x) -> x.replace(/</g, '&lt;')).map((x) -> x.replace(/>/g, '&gt;')).map((x) -> x.replace(/"/g, '\\"')).map((x) -> '"' + x + '"')
+  trackedLines = _.sortBy(_.unique(injectList), _.identity)
+
+  sourceMappings = [
+    (x) -> x.replace(/&/g, '&amp;')
+    (x) -> x.replace(/</g, '&lt;')
+    (x) -> x.replace(/>/g, '&gt;')
+    (x) -> x.replace(/"/g, '\\"')
+    (x) -> '"' + x + '"'
+  ]
+
+  originalSource = code.split('\n').map (line) -> sourceMappings.reduce(((src, f) -> f(src)), line)
   originalSource = originalSource.slice(0, -1) if _.last(originalSource) == '""' # useless trimming - just to keep the semantics the same as for jscoverage
 
   output = []
   output.push "if (typeof _$jscoverage === 'undefined') _$jscoverage = {};"
   output.push "if (! _$jscoverage['#{filename}']) {"
   output.push "  _$jscoverage['#{filename}'] = [];"
-  _.sortBy(_.unique(injectList), _.identity).forEach (line) ->
+  trackedLines.forEach (line) ->
     output.push "  _$jscoverage['#{filename}'][#{line}] = 0;"
   output.push "}"
-  output.push escodegen.generate(parsed, { indent: "  " })
+  output.push escodegen.generate(ast, { indent: "  " })
   output.push "_$jscoverage['#{filename}'].source = [" + originalSource.join(",") + "];"
 
   output.join('\n')
