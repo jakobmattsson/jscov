@@ -2,7 +2,7 @@ _ = require 'underscore'
 esprima = require 'esprima'
 escodegen = require 'escodegen'
 
-rewrite = exports.rewrite = (code, filename) ->
+exports.rewrite = (code, filename) ->
 
   injectList = []
 

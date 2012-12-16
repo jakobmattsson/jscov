@@ -2,19 +2,23 @@
   "name": "pure-jscoverage",
   "description": "JSCoverage, implemented in JavaScript",
   "version": "0.1.0",
-  "main": "./lib/coverage.js",
   "author": "Jakob Mattsson <jakob.mattsson@gmail.com> (jakobmattsson.se)",
+  "main": "./lib/coverage.js",
+  "bin": {
+    "pure-jscoverage": "./bin/pure-jscoverage.js"
+  },
   "engines": {
     "npm": "1.1.x",
     "node": "0.8.x"
   },
   "scripts": {
     "test": "mocha --compilers coffee:coffee-script spec/test.coffee",
-    "pretest": "coffee -co lib src && rm -rf spec/out && jscoverage spec/scaffold spec/out",
+    "pretest": "coffee -co lib src && rm -rf spec/expect && jscoverage spec/scaffold spec/expect",
     "prepublish": "coffee -co lib src",
     "prestart": "coffee -co lib src"
   },
   "dependencies": {
+    "optimist": "0.3.5",
     "esprima": "1.0.2",
     "escodegen": "0.0.15"
   },

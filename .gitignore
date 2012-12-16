@@ -11,6 +11,6 @@ pids
 logs
 results
 lib
-spec/out
+spec/expect
 
 npm-debug.log

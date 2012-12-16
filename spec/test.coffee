@@ -10,7 +10,7 @@ fs.readdirSync('spec/scaffold').forEach (filename) ->
   newCode = cov.rewrite(code, filename)
   actualParse = esprima.parse(newCode)
 
-  expect = fs.readFileSync('spec/out/' + filename, 'utf8')
+  expect = fs.readFileSync('spec/expect/' + filename, 'utf8')
   expectedParse = esprima.parse(expect)
 
   it "should parse #{filename} the same way as jscoverage", ->
