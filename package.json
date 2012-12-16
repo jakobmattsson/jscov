@@ -1,0 +1,24 @@
+{
+  "name": "pure-jscoverage",
+  "description": "JSCoverage, implemented in JavaScript",
+  "version": "0.1.0",
+  "main": "./lib/coverage.js",
+  "author": "Jakob Mattsson <jakob.mattsson@gmail.com> (jakobmattsson.se)",
+  "engines": {
+    "npm": "1.1.x",
+    "node": "0.8.x"
+  },
+  "scripts": {
+    "test": "echo test",
+    "coverage": "echo coverage",
+    "pretest": "coffee -co lib src",
+    "prepublish": "coffee -co lib src",
+    "prestart": "coffee -co lib src"
+  },
+  "dependencies": {
+    "uglify-js": "2.2.2"
+  },
+  "devDependencies": {
+    "coffee-script": "1.4.0"
+  }
+}
