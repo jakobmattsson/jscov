@@ -9,16 +9,18 @@
     "node": "0.8.x"
   },
   "scripts": {
-    "test": "echo test",
-    "coverage": "echo coverage",
-    "pretest": "coffee -co lib src",
+    "test": "mocha --compilers coffee:coffee-script spec/test.coffee",
+    "pretest": "coffee -co lib src && rm -rf spec/out && jscoverage spec/scaffold spec/out",
     "prepublish": "coffee -co lib src",
     "prestart": "coffee -co lib src"
   },
   "dependencies": {
-    "uglify-js": "2.2.2"
+    "esprima": "1.0.2",
+    "escodegen": "0.0.15"
   },
   "devDependencies": {
+    "should": "1.2.1",
+    "mocha": "1.7.4",
     "coffee-script": "1.4.0"
   }
 }
