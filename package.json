@@ -12,8 +12,8 @@
     "node": ">= 0.6.6"
   },
   "scripts": {
-    "test": "echo test",
-    "pretest": "echo pretest",
+    "test": "mocha --compilers coffee:coffee-script spec/test.coffee",
+    "pretest": "coffee -co lib src && rm -rf spec/expect && /Users/jakobm/Dropbox/Projects/tools/node-jscoverage/jscoverage spec/scaffold spec/expect",
     "prepublish": "coffee -co lib src",
     "prestart": "coffee -co lib src"
   },
