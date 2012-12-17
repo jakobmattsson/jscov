@@ -4,7 +4,7 @@ node_js:
   - "0.8"
   - "0.9"
 before_install:
-  - git clone git://github.com/visionmedia/node-jscoverage.git
+  - git clone git://github.com/jakobmattsson/node-jscoverage.git
   - cd node-jscoverage
   - ./configure
   - make
