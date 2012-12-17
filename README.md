@@ -1,6 +1,6 @@
 # jscov
 
-JSCoverage, implemented in JavaScript.
+JSCoverage, implemented in JavaScript!
 
 [![Build Status](https://secure.travis-ci.org/jakobmattsson/jscov.png)](http://travis-ci.org/jakobmattsson/jscov)
 
