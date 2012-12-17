@@ -52,5 +52,3 @@ Running the tests requires jscoverage to be installed. This is because the main 
 
 * Some characters in regexps appears to be improperly escaped, for example $. Investigate.
 * Add some more test scaffolding, based on other peoples code in order to analyse coding styles other than my own.
-* The Travis-CI tests are failing due to a bug in wrench, when running ndoe 0.6. Fix.
-
