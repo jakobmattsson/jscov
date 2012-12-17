@@ -8,3 +8,4 @@ before_script:
   - cd node-jscoverage
   - ./configure
   - make
+  - cd ..
