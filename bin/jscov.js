@@ -4,7 +4,7 @@ var optimist = require('optimist');
 var jscov = require('../lib/coverage');
 
 var argv = optimist
-  .usage("JSCoverage is a tool that measures code coverage for JavaScript programs.\n\nUsage: jscov sourcedir targetdir")
+  .usage("jscov is a tool that measures code coverage for JavaScript programs.\n\njscov is modelled after JSCoverage (http://siliconforks.com/jscoverage),\nbut implemented in pure JavaScript and can be used as a direct replacement.\n\nUsage: jscov sourcedir targetdir")
   .describe('version', 'Print the current version number')
   .describe('help', 'Show this help message')
   .alias('version', 'v')
