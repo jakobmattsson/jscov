@@ -24,3 +24,7 @@ Running the tests required jscoverage to be installed. http://siliconforks.com/j
 
 * Some characters in regexps appears to be improperly escaped, for example $. Investigate.
 * Add some more test scaffolding, based on other peoples code in order to analyse coding styles other than my own.
+
+
+
+/home/travis/builds/jakobmattsson/jscov/node-jscoverage/jscoverage
