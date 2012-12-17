@@ -1,11 +1,11 @@
 {
-  "name": "pure-jscoverage",
+  "name": "jscov",
   "description": "JSCoverage, implemented in JavaScript",
   "version": "0.1.0",
   "author": "Jakob Mattsson <jakob.mattsson@gmail.com> (jakobmattsson.se)",
   "main": "./lib/coverage.js",
   "bin": {
-    "pure-jscoverage": "./bin/pure-jscoverage.js"
+    "jscov": "./bin/jscov.js"
   },
   "engines": {
     "npm": "1.1.x",
@@ -18,13 +18,15 @@
     "prestart": "coffee -co lib src"
   },
   "dependencies": {
+    "coffee-script": "1.4.0",
+    "wrench": "1.4.4",
     "optimist": "0.3.5",
+    "underscore": "1.4.3",
     "esprima": "1.0.2",
     "escodegen": "0.0.15"
   },
   "devDependencies": {
     "should": "1.2.1",
-    "mocha": "1.7.4",
-    "coffee-script": "1.4.0"
+    "mocha": "1.7.4"
   }
 }

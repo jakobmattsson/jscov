@@ -12,5 +12,9 @@ logs
 results
 lib
 spec/expect
+spec/coffee-out
+spec/existing
+spec/scaffold-out
+
 
 npm-debug.log
