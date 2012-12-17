@@ -13,7 +13,7 @@
   },
   "scripts": {
     "test": "mocha --compilers coffee:coffee-script spec/test.coffee",
-    "pretest": "coffee -co lib src && rm -rf spec/expect && jscoverage spec/scaffold spec/expect",
+    "pretest": "coffee -co lib src && rm -rf spec/expect && sh apa.sh spec/scaffold spec/expect",
     "prepublish": "coffee -co lib src",
     "prestart": "coffee -co lib src"
   },

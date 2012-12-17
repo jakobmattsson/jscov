@@ -9,4 +9,3 @@ before_script:
   - ./configure
   - make
   - cd ..
-  - alias jscoverage=/home/travis/builds/jakobmattsson/jscov/node-jscoverage/jscoverage
