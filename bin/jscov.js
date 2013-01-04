@@ -27,5 +27,8 @@ if (argv._.length != 2) {
 }
 
 jscov.rewriteFolder(argv._[0], argv._[1], function(err) {
-  console.log(err || "Great success!");
+  if (err) {
+    console.log(err);
+    process.exit(1);
+  }
 });

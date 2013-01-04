@@ -1,15 +1,15 @@
 {
   "name": "jscov",
   "description": "JSCoverage, implemented in JavaScript",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "author": "Jakob Mattsson <jakob.mattsson@gmail.com> (jakobmattsson.se)",
   "main": "./lib/coverage.js",
   "bin": {
     "jscov": "./bin/jscov.js"
   },
   "engines": {
-    "npm": "1.1.x",
-    "node": ">= 0.8.0"
+    "npm": ">= 1.1",
+    "node": ">= 0.8"
   },
   "scripts": {
     "test": "mocha --compilers coffee:coffee-script spec/test.coffee",
