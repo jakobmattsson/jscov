@@ -6,6 +6,38 @@ escodegen = require 'escodegen'
 wrench = require 'wrench'
 coffee = require 'coffee-script'
 
+reservedWords = [
+  'break'
+  'case'
+  'catch'
+  'continue'
+  'debugger'
+  'default'
+  'delete'
+  'do'
+  'else'
+  'finally'
+  'for'
+  'function'
+  'if'
+  'in'
+  'instanceof'
+  'new'
+  'return'
+  'switch'
+  'this'
+  'throw'
+  'try'
+  'typeof'
+  'var'
+  'void'
+  'while'
+  'with'
+]
+
+isValidIdentifier = (name) ->
+  name? && (name.toString().match(/^[_a-zA-Z][_a-zA-Z0-9]*$/) || name.toString().match(/^[1-9][0-9]*$/)) && reservedWords.indexOf(name) == -1
+
 exports.rewriteSource = (code, filename) ->
 
   injectList = []
@@ -38,6 +70,12 @@ exports.rewriteSource = (code, filename) ->
 
   escodegen.traverse ast,
     enter: (node) ->
+      if node.type == 'MemberExpression' && node.computed && node.property && node.property.type == 'Literal' && isValidIdentifier(node.property.value)
+        if node.property.value.toString().match(/^[1-9][0-9]*$/)
+          node.property = { type: 'Literal', value: parseInt(node.property.value, 10) }
+        else
+          node.computed = false
+          node.property = { type: 'Identifier', name: node.property.value }
       if ['BlockStatement', 'Program'].indexOf(node.type) != -1
         node.body = _.flatten node.body.map (x) -> [inject(x), x]
       if node.type == 'SwitchCase'
