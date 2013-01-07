@@ -12,7 +12,7 @@
     "node": ">= 0.8"
   },
   "scripts": {
-    "test": "mocha --compilers coffee:coffee-script spec/test.coffee",
+    "test": "mocha --timeout 20000 --compilers coffee:coffee-script spec/test.coffee",
     "pretest": "coffee -co lib src && rm -rf spec/expect && sh scripts/run-jscoverage.sh spec/scaffold spec/expect",
     "prepublish": "coffee -co lib src",
     "prestart": "coffee -co lib src"
