@@ -24,43 +24,42 @@ evalBinaryExpression = do ->
     method(arg1, arg2)
 
 
-isValidIdentifier = do ->
-  reservedWords = [
-    'break'
-    'case'
-    'catch'
-    'continue'
-    'debugger'
-    'default'
-    'delete'
-    'do'
-    'else'
-    'finally'
-    'for'
-    'function'
-    'if'
-    'in'
-    'instanceof'
-    'new'
-    'return'
-    'switch'
-    'this'
-    'throw'
-    'try'
-    'typeof'
-    'var'
-    'void'
-    'while'
-    'with'
+reservedWords = [
+  'break'
+  'case'
+  'catch'
+  'continue'
+  'debugger'
+  'default'
+  'delete'
+  'do'
+  'else'
+  'finally'
+  'for'
+  'function'
+  'if'
+  'in'
+  'instanceof'
+  'new'
+  'return'
+  'switch'
+  'this'
+  'throw'
+  'try'
+  'typeof'
+  'var'
+  'void'
+  'while'
+  'with'
 
-    # These are not keyword according to JavaScript, but JSCoverage treats them as if they were.
-    # Just follow suit...
-    'throws'
-  ]
+  # These are not keyword according to JavaScript, but JSCoverage treats them as if they were.
+  # Just follow suit...
+  'throws'
+]
 
 
-  (name) ->
-    name? && !(name in reservedWords) && (name.toString().match(/^[_a-zA-Z][_a-zA-Z0-9]*$/) || name.toString().match(/^[1-9][0-9]*$/))
+isValidIdentifier = (name) ->
+  name? && !(name in reservedWords) && (name.toString().match(/^[_a-zA-Z][_a-zA-Z0-9]*$/) || name.toString().match(/^[1-9][0-9]*$/))
 
 
 replaceNode = (node, newVal) ->
@@ -99,21 +98,24 @@ formatTree = (ast) ->
           else
             node.computed = false
             node.property = { type: 'Identifier', name: node.property.value }
-        if node.type == 'BinaryExpression' && node.left.type == 'Literal' && node.right.type == 'Literal'
+        else if node.type == 'MemberExpression' && !node.computed && node.property.type == 'Identifier' && node.property.name in reservedWords
+          node.computed = true
+          makeLiteral(node.property, node.property.name)
+        else if node.type == 'BinaryExpression' && node.left.type == 'Literal' && node.right.type == 'Literal'
           if typeof node.left.value == 'string' && typeof node.right.value == 'string' && node.operator == '+'
             makeLiteral(node, node.left.value + node.right.value)
             format = true
           if typeof node.left.value == 'number' && typeof node.right.value == 'number' && node.operator in ['+', '-', '*', '%', '/', '<<', '>>', '>>>']
             makeLiteral(node, evalBinaryExpression(node.left.value, node.operator, node.right.value))
             format = true
-        if node.type == 'UnaryExpression' && node.argument.type == 'Literal'
+        else if node.type == 'UnaryExpression' && node.argument.type == 'Literal'
           if node.operator == '!'
             makeLiteral(node, !node.argument.value)
             format = true
           if node.operator == "~" && typeof node.argument.value == 'number'
             makeLiteral(node, ~node.argument.value)
             format = true
-        if node.type == 'ConditionalExpression' && node.test.type == 'Literal'
+        else if node.type == 'ConditionalExpression' && node.test.type == 'Literal'
           if typeof node.test.value == 'string' || typeof node.test.value == 'number' || typeof node.test.value == 'boolean'
             if node.test.value
               replaceNode(node, node.consequent)
