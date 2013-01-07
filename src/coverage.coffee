@@ -120,7 +120,9 @@ formatTree = (ast) ->
             if node.test.value
               replaceNode(node, node.consequent)
             else
-              replaceNode(node, node.alternate)  
+              replaceNode(node, node.alternate)
+        else if node.type == 'WhileStatement' && node.test.type == 'Literal'
+          node.test.value = !!node.test.value
 
 
 inject = (x, filename) ->
