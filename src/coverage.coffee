@@ -71,16 +71,23 @@ exports.rewriteSource = (code, filename) ->
             value: filename
 
 
+  replaceNode = (node, newVal) ->
+    props = Object.getOwnPropertyNames(node)
+    props.forEach (prop) -> delete node[prop]
+
+    Object.keys(newVal).forEach (prop) ->
+      node[prop] = newVal[prop]
+
   makeLiteral = (node, value) ->
     if typeof value == 'number' && value < 0
-      props = Object.getOwnPropertyNames(node)
-      props.forEach (prop) -> delete node[prop]
-      node.type = 'UnaryExpression'
-      node.operator = '-'
-      node.argument = {
-        type: 'Literal'
-        value: -value
-      }
+      replaceNode(node, {
+        type: 'UnaryExpression'
+        operator: '-'
+        argument: {
+          type: 'Literal'
+          value: -value
+        }
+      })
     else
       node.type = 'Literal'
       node.value = value
@@ -113,6 +120,12 @@ exports.rewriteSource = (code, filename) ->
           if ['!', '~'].indexOf(node.operator) != -1 && typeof node.argument.value == 'number'
             makeLiteral(node, eval("#{node.operator} #{node.argument.value}")) # OH NOES! Eval!
             format = true
+        if node.type == 'ConditionalExpression' && node.test.type == 'Literal'
+          if typeof node.test.value == 'string' || typeof node.test.value == 'number'
+            if node.test.value
+              replaceNode(node, node.consequent)
+            else
+              replaceNode(node, node.alternate)
 
 
   # injecting coverage code
