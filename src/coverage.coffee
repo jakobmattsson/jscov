@@ -78,7 +78,7 @@ exports.rewriteSource = (code, filename) ->
           node.property = { type: 'Identifier', name: node.property.value }
       if ['BlockStatement', 'Program'].indexOf(node.type) != -1
         node.body = _.flatten node.body.map (x) ->
-          if x.body && x.type == 'FunctionDeclaration'
+          if x.body && x.type == 'FunctionDeclaration' ## x.body should not be required here -- try to remove it
             [inject(x.body), x]
           else
             [inject(x), x]
