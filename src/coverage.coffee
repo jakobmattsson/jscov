@@ -101,6 +101,7 @@ exports.rewriteSource = (code, filename) ->
     (x) -> x.replace(/&/g, '&amp;')
     (x) -> x.replace(/</g, '&lt;')
     (x) -> x.replace(/>/g, '&gt;')
+    (x) -> x.replace(/\\/g, '\\\\')
     (x) -> x.replace(/"/g, '\\"')
     (x) -> '"' + x + '"'
   ]
