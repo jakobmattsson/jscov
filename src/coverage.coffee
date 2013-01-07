@@ -77,7 +77,11 @@ exports.rewriteSource = (code, filename) ->
           node.computed = false
           node.property = { type: 'Identifier', name: node.property.value }
       if ['BlockStatement', 'Program'].indexOf(node.type) != -1
-        node.body = _.flatten node.body.map (x) -> [inject(x), x]
+        node.body = _.flatten node.body.map (x) ->
+          if x.body && x.type == 'FunctionDeclaration'
+            [inject(x.body), x]
+          else
+            [inject(x), x]
       if node.type == 'SwitchCase'
         node.consequent = _.flatten node.consequent.map (x) -> [inject(x), x]
       if node.type == 'IfStatement'
