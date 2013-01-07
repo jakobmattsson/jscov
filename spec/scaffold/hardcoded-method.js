@@ -9,7 +9,14 @@ function trailing_semicolon() {
   function() {}
 );
 
+
 ;(
   // Comment between
   f()+g()
 );
+
+
+;(
+  // Comment between
+  function a() {
+}(1));
