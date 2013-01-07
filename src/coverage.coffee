@@ -117,11 +117,14 @@ exports.rewriteSource = (code, filename) ->
             makeLiteral(node, eval("#{node.left.value} #{node.operator} #{node.right.value}")) # OH NOES! Eval!
             format = true
         if node.type == 'UnaryExpression' && node.argument.type == 'Literal'
-          if ['!', '~'].indexOf(node.operator) != -1 && typeof node.argument.value == 'number'
+          if node.operator == '!'
+            makeLiteral(node, !node.argument.value)
+            format = true
+          if ['~'].indexOf(node.operator) != -1 && typeof node.argument.value == 'number'
             makeLiteral(node, eval("#{node.operator} #{node.argument.value}")) # OH NOES! Eval!
             format = true
         if node.type == 'ConditionalExpression' && node.test.type == 'Literal'
-          if typeof node.test.value == 'string' || typeof node.test.value == 'number'
+          if typeof node.test.value == 'string' || typeof node.test.value == 'number' || typeof node.test.value == 'boolean'
             if node.test.value
               replaceNode(node, node.consequent)
             else
