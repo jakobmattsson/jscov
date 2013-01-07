@@ -11,14 +11,14 @@ describe "rewriteSource", ->
 
     return if fs.lstatSync('spec/scaffold/' + filename).isDirectory()
 
-    code = fs.readFileSync('spec/scaffold/' + filename, 'utf8')
-    newCode = jscov.rewriteSource(code, filename)
-    actualParse = esprima.parse(newCode)
-
-    expect = fs.readFileSync('spec/expect/' + filename, 'utf8')
-    expectedParse = esprima.parse(expect)
-
     it "should parse #{filename} the same way as jscoverage", ->
+      code = fs.readFileSync('spec/scaffold/' + filename, 'utf8')
+      newCode = jscov.rewriteSource(code, filename)
+      actualParse = esprima.parse(newCode)
+
+      expect = fs.readFileSync('spec/expect/' + filename, 'utf8')
+      expectedParse = esprima.parse(expect)
+
       _.isEqual(actualParse, expectedParse).should.be.true
 
 
