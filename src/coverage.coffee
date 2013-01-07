@@ -260,7 +260,10 @@ exports.rewriteSource = (code, filename) ->
     enter: (node) ->
       if node.type in ['BlockStatement', 'Program']
         node.body = _.flatten node.body.map (x) ->
-          if x.type == 'FunctionDeclaration'
+          if x.type == 'ExpressionStatement' && x.expression.type == 'FunctionExpression'
+            injectList.push(x.expression.loc.start.line)
+            [inject(x.expression, filename), x]
+          else if x.type == 'FunctionDeclaration'
             injectList.push(x.body.loc.start.line)
             [inject(x.body, filename), x]
           else
