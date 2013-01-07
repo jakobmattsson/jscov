@@ -123,6 +123,14 @@ formatTree = (ast) ->
               replaceNode(node, node.alternate)
         else if node.type == 'WhileStatement' && node.test.type == 'Literal'
           node.test.value = !!node.test.value
+        else if node.type == 'Literal' && typeof node.value == 'number' && node.value == Infinity
+            replaceNode(node, {
+              type: 'MemberExpression'
+              computed: false
+              object: { type: 'Identifier', name: 'Number' }
+              property: { type: 'Identifier', name: 'POSITIVE_INFINITY' }
+            })
+
 
 
 inject = (x, filename) ->

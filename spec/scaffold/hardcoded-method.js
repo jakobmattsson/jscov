@@ -10,3 +10,7 @@ x["+++y"].f();
 while (true) { }
 while ("hej") { }
 while (123) { }
+
+
+n = 1e+400
+m = Number.POSITIVE_INFINITY
