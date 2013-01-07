@@ -68,14 +68,34 @@ exports.rewriteSource = (code, filename) ->
 
   ast = esprima.parse(code, { loc: true })
 
+  # formatting (no difference in result, just here to give it exactly the same semantics as JSCoverage)
+  # this block should be part of the comparisons in the tests; not the source
+  format = true
+
+  while format
+    format = false
+    escodegen.traverse ast,
+      enter: (node) ->
+        if node.type == 'MemberExpression' && node.computed && node.property && node.property.type == 'Literal' && isValidIdentifier(node.property.value)
+          if node.property.value.toString().match(/^[1-9][0-9]*$/)
+            node.property = { type: 'Literal', value: parseInt(node.property.value, 10) }
+          else
+            node.computed = false
+            node.property = { type: 'Identifier', name: node.property.value }
+        if node.type == 'BinaryExpression' && node.left.type == 'Literal' && node.right.type == 'Literal'
+          if node.operator == '+' && typeof node.left.value == 'string' && typeof node.right.value == 'string'
+            node.type = 'Literal'
+            node.value = node.left.value + node.right.value
+            format = true
+          if ['+', '-', '*', '%', '/', '<<', '>>', '>>>'].indexOf(node.operator) != -1 && typeof node.left.value == 'number' && typeof node.right.value == 'number'
+            node.type = 'Literal'
+            node.value = eval("#{node.left.value} #{node.operator} #{node.right.value}") # OH NOES! Eval!
+            format = true
+
+
+  # injecting coverage code
   escodegen.traverse ast,
     enter: (node) ->
-      if node.type == 'MemberExpression' && node.computed && node.property && node.property.type == 'Literal' && isValidIdentifier(node.property.value)
-        if node.property.value.toString().match(/^[1-9][0-9]*$/)
-          node.property = { type: 'Literal', value: parseInt(node.property.value, 10) }
-        else
-          node.computed = false
-          node.property = { type: 'Identifier', name: node.property.value }
       if ['BlockStatement', 'Program'].indexOf(node.type) != -1
         node.body = _.flatten node.body.map (x) ->
           if x.body && x.type == 'FunctionDeclaration' ## x.body should not be required here -- try to remove it
