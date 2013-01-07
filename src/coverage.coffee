@@ -252,18 +252,18 @@ exports.rewriteSource = (code, filename) ->
   # remove extra empty statements trailing returns without semicolons (no semantic difference, just to keep in line with JSCoverage)
   escodegen.traverse ast,
     enter: (node) ->
-      if node.type == 'BlockStatement'
-        node.body = node.body.filter (x, i) -> !(x.type == 'EmptyStatement' && i-1 >= 0 && node.body[i-1].type == 'ReturnStatement')
+      if node.type in ['BlockStatement', 'Program']
+        node.body = node.body.filter (x, i) -> !(x.type == 'EmptyStatement' && i-1 >= 0 && node.body[i-1].type in ['ReturnStatement', 'VariableDeclaration'])
 
   # insert the coverage information
   escodegen.traverse ast,
     enter: (node) ->
       if node.type in ['BlockStatement', 'Program']
         node.body = _.flatten node.body.map (x) ->
-          if x.expression?.type == 'FunctionExpression' # x.type == 'ExpressionStatement' &&
+          if x.expression?.type == 'FunctionExpression'
             injectList.push(x.expression.loc.start.line)
             [inject(x.expression, filename), x]
-          else if x.expression?.type == 'CallExpression' # x.type == 'ExpressionStatement' &&
+          else if x.expression?.type == 'CallExpression'
             injectList.push(x.expression.loc.start.line)
             [inject(x.expression, filename), x]
           else if x.type == 'FunctionDeclaration'

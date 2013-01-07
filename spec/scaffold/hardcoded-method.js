@@ -20,3 +20,10 @@ function trailing_semicolon() {
   // Comment between
   function a() {
 }(1));
+
+
+// Semicomon trailing after variable declaration
+var dirname = require._core[filename]
+    ? ''
+    : require.modules.path().dirname(filename)
+;
