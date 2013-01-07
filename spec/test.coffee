@@ -9,7 +9,7 @@ describe "rewriteSource", ->
 
   wrench.readdirSyncRecursive('spec/scaffold').forEach (filename) ->
 
-    return if fs.lstatSync('spec/scaffold/' + filename).isDirectory()
+    return if fs.lstatSync('spec/scaffold/' + filename).isDirectory() || !filename.match(/\.js$/)
 
     it "should parse #{filename} the same way as jscoverage", ->
       code = fs.readFileSync('spec/scaffold/' + filename, 'utf8')
