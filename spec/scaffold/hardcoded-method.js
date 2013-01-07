@@ -4,6 +4,13 @@ function trailing_semicolon() {
 }
 
 
+function fake_trailing_semicolon() {
+  return 1;
+  ;
+}
+
+
+
 ;(
   // Comment between
   function() {}
@@ -22,8 +29,32 @@ function trailing_semicolon() {
 }(1));
 
 
-// Semicomon trailing after variable declaration
-var dirname = require._core[filename]
-    ? ''
-    : require.modules.path().dirname(filename)
+// Semicolon trailing after variable declaration
+var dirname = 10
 ;
+
+// Fake semicolon trailing after variable declaration
+var dirname = 11;
+;
+
+
+var apa = 1,
+  x = 2;
+
+
+var apa = 1,
+  x = 2;
+;
+
+
+
+
+
+
+// 1+2
+// ;
+// 
+// f()
+// ;
+// 
+// 
