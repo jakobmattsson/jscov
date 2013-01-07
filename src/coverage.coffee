@@ -253,7 +253,7 @@ exports.rewriteSource = (code, filename) ->
   escodegen.traverse ast,
     enter: (node) ->
       if node.type in ['BlockStatement', 'Program']
-        node.body = node.body.filter (x, i) -> !(x.type == 'EmptyStatement' && i-1 >= 0 && node.body[i-1].type in ['ReturnStatement', 'VariableDeclaration'])
+        node.body = node.body.filter (x, i) -> !(x.type == 'EmptyStatement' && i-1 >= 0 && node.body[i-1].type in ['ReturnStatement', 'VariableDeclaration', 'ExpressionStatement'] && node.body[i-1].loc.end.line == x.loc.start.line)
 
   # insert the coverage information
   escodegen.traverse ast,
