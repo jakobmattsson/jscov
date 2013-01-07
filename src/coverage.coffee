@@ -103,15 +103,15 @@ exports.rewriteSource = (code, filename) ->
             node.computed = false
             node.property = { type: 'Identifier', name: node.property.value }
         if node.type == 'BinaryExpression' && node.left.type == 'Literal' && node.right.type == 'Literal'
-          if node.operator == '+' && typeof node.left.value == 'string' && typeof node.right.value == 'string'
+          if node.operator == '+' && typeof node.left.value == 'string' && typeof node.right.value == 'string' ## put the "typeof" first (easier to read)
             makeLiteral(node, node.left.value + node.right.value)
             format = true
-          else if ['+', '-', '*', '%', '/', '<<', '>>', '>>>'].indexOf(node.operator) != -1 && typeof node.left.value == 'number' && typeof node.right.value == 'number'
+          else if ['+', '-', '*', '%', '/', '<<', '>>', '>>>'].indexOf(node.operator) != -1 && typeof node.left.value == 'number' && typeof node.right.value == 'number' ## put the "typeof" first (easier to read)
             makeLiteral(node, eval("#{node.left.value} #{node.operator} #{node.right.value}")) # OH NOES! Eval!
             format = true
         if node.type == 'UnaryExpression' && node.argument.type == 'Literal'
           if ['!', '~'].indexOf(node.operator) != -1 && typeof node.argument.value == 'number'
-            makeLiteral(node, eval("#{node.operator} #{node.argument.value}"))
+            makeLiteral(node, eval("#{node.operator} #{node.argument.value}")) # OH NOES! Eval!
             format = true
 
 
