@@ -70,6 +70,22 @@ exports.rewriteSource = (code, filename) ->
             type: 'Literal'
             value: filename
 
+
+  makeLiteral = (node, value) ->
+    if typeof value == 'number' && value < 0
+      props = Object.getOwnPropertyNames(node)
+      props.forEach (prop) -> delete node[prop]
+      node.type = 'UnaryExpression'
+      node.operator = '-'
+      node.argument = {
+        type: 'Literal'
+        value: -value
+      }
+    else
+      node.type = 'Literal'
+      node.value = value
+
+
   ast = esprima.parse(code, { loc: true })
 
   # formatting (no difference in result, just here to give it exactly the same semantics as JSCoverage)
@@ -88,12 +104,14 @@ exports.rewriteSource = (code, filename) ->
             node.property = { type: 'Identifier', name: node.property.value }
         if node.type == 'BinaryExpression' && node.left.type == 'Literal' && node.right.type == 'Literal'
           if node.operator == '+' && typeof node.left.value == 'string' && typeof node.right.value == 'string'
-            node.type = 'Literal'
-            node.value = node.left.value + node.right.value
+            makeLiteral(node, node.left.value + node.right.value)
             format = true
-          if ['+', '-', '*', '%', '/', '<<', '>>', '>>>'].indexOf(node.operator) != -1 && typeof node.left.value == 'number' && typeof node.right.value == 'number'
-            node.type = 'Literal'
-            node.value = eval("#{node.left.value} #{node.operator} #{node.right.value}") # OH NOES! Eval!
+          else if ['+', '-', '*', '%', '/', '<<', '>>', '>>>'].indexOf(node.operator) != -1 && typeof node.left.value == 'number' && typeof node.right.value == 'number'
+            makeLiteral(node, eval("#{node.left.value} #{node.operator} #{node.right.value}")) # OH NOES! Eval!
+            format = true
+        if node.type == 'UnaryExpression' && node.argument.type == 'Literal'
+          if ['!', '~'].indexOf(node.operator) != -1 && typeof node.argument.value == 'number'
+            makeLiteral(node, eval("#{node.operator} #{node.argument.value}"))
             format = true
 
 
