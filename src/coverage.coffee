@@ -84,6 +84,17 @@ makeLiteral = (node, value) ->
     node.value = value
 
 
+mathable = (node) -> node.type == 'Literal' || (node.type == 'UnaryExpression' && node.operator == '-' && node.argument.type == 'Literal')
+getVal = (node) ->
+  if node.type == 'Literal' && typeof node.value == 'number'
+    node.value
+  else if node.type == 'UnaryExpression' && node.operator == '-' && node.argument.type == 'Literal' && typeof node.argument.value == 'number'
+    -node.argument.value
+  else
+    "nope"
+
+
+
 formatTree = (ast) ->
   # formatting (no difference in result, just here to give it exactly the same semantics as JSCoverage)
   # this block should be part of the comparisons in the tests; not the source
@@ -102,12 +113,15 @@ formatTree = (ast) ->
         else if node.type == 'MemberExpression' && !node.computed && node.property.type == 'Identifier' && node.property.name in reservedWords
           node.computed = true
           makeLiteral(node.property, node.property.name)
-        else if node.type == 'BinaryExpression' && node.left.type == 'Literal' && node.right.type == 'Literal'
-          if typeof node.left.value == 'string' && typeof node.right.value == 'string' && node.operator == '+'
-            makeLiteral(node, node.left.value + node.right.value)
-            format = true
-          if typeof node.left.value == 'number' && typeof node.right.value == 'number' && node.operator in ['+', '-', '*', '%', '/', '<<', '>>', '>>>']
-            makeLiteral(node, evalBinaryExpression(node.left.value, node.operator, node.right.value))
+        else if node.type == 'BinaryExpression' && node.left.type == 'Literal' && node.right.type == 'Literal' && typeof node.left.value == 'string' && typeof node.right.value == 'string' && node.operator == '+'
+          makeLiteral(node, node.left.value + node.right.value)
+          format = true
+        else if node.type == 'BinaryExpression' && mathable(node.left) && mathable(node.right)
+          lv = getVal(node.left)
+          rv = getVal(node.right)
+          if typeof lv == 'number' && typeof rv == 'number' && node.operator in ['+', '-', '*', '%', '/', '<<', '>>', '>>>']
+            binval = evalBinaryExpression(lv, node.operator, rv)
+            makeLiteral(node, binval)
             format = true
         else if node.type == 'UnaryExpression' && node.argument.type == 'Literal'
           if node.operator == '!'
@@ -124,13 +138,30 @@ formatTree = (ast) ->
               replaceNode(node, node.alternate)
         else if node.type == 'WhileStatement' && node.test.type == 'Literal'
           node.test.value = !!node.test.value
-        else if node.type == 'Literal' && typeof node.value == 'number' && node.value == Infinity
-            replaceNode(node, {
-              type: 'MemberExpression'
-              computed: false
-              object: { type: 'Identifier', name: 'Number' }
-              property: { type: 'Identifier', name: 'POSITIVE_INFINITY' }
-            })
+
+  # step 2: replace negative infinities
+  escodegen.traverse ast,
+    enter: (node) ->
+      if node.type == 'UnaryExpression' && node.argument.type == 'Literal' && node.argument.value == Infinity
+        replaceNode(node, {
+          type: 'MemberExpression'
+          computed: false
+          object: { type: 'Identifier', name: 'Number' }
+          property: { type: 'Identifier', name: 'NEGATIVE_INFINITY' }
+        })
+
+  # step 3: replace positive infinities
+  escodegen.traverse ast,
+    enter: (node) ->
+      if node.type == 'Literal' && typeof node.value == 'number' && node.value == Infinity
+        replaceNode(node, {
+          type: 'MemberExpression'
+          computed: false
+          object: { type: 'Identifier', name: 'Number' }
+          property: { type: 'Identifier', name: 'POSITIVE_INFINITY' }
+        })
+
+
 
 
 
@@ -164,6 +195,14 @@ writeFile = do ->
     (x) -> x.replace(/>/g, '&gt;')
     (x) -> x.replace(/\\/g, '\\\\')
     (x) -> x.replace(/"/g, '\\"')
+    (x) ->
+      arr = [0...x.length].map (i) ->
+        cc = x.charCodeAt(i)
+        if cc < 128
+          x[i]
+        else
+          '&#' + cc + ';'
+      arr.join('')
     (x) -> '"' + x + '"'
   ]
 

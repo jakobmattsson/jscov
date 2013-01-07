@@ -14,3 +14,21 @@ while (123) { }
 
 n = 1e+400
 m = Number.POSITIVE_INFINITY
+
+p =  1 /  0
+q = -1 /  0
+r =  1 / -0
+s = -1 / -0
+
+
+
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER “AS IS”
+
+str = "HOLDER “AS IS”"
+
+str = "åäö"
+
+myvaråäö = 1
+
+
+
