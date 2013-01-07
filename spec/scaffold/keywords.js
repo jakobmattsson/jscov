@@ -59,3 +59,6 @@ a.with.f();
 
 a['throws'].f();
 a.throws.f();
+
+a['static'].f();
+a.static.f();

@@ -55,6 +55,7 @@ reservedWords = [
   # These are not keyword according to JavaScript, but JSCoverage treats them as if they were.
   # Just follow suit...
   'throws'
+  'static'
 ]
 
 
