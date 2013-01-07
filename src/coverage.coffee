@@ -235,6 +235,27 @@ exports.rewriteSource = (code, filename) ->
 
   formatTree(ast)
 
+  # all optional blocks should be actual blocks (in order to make it possible to put coverage information in them)
+  escodegen.traverse ast,
+    enter: (node) ->
+      if node.type == 'IfStatement'
+        ['consequent', 'alternate'].forEach (src) ->
+          if node[src]? && node[src].type != 'BlockStatement'
+            node[src] =
+              type: 'BlockStatement'
+              body: [node[src]]
+      if node.type in ['ForInStatement', 'ForStatement', 'WhileStatement', 'WithStatement', 'DoWhileStatement'] && node.body? && node.body.type != 'BlockStatement'
+        node.body =
+          type: 'BlockStatement'
+          body: [node.body]
+
+  # remove extra empty statements trailing returns without semicolons (no semantic difference, just to keep in line with JSCoverage)
+  escodegen.traverse ast,
+    enter: (node) ->
+      if node.type == 'BlockStatement'
+        node.body = node.body.filter (x, i) -> !(x.type == 'EmptyStatement' && i-1 >= 0 && node.body[i-1].type == 'ReturnStatement')
+
+  # insert the coverage information
   escodegen.traverse ast,
     enter: (node) ->
       if node.type in ['BlockStatement', 'Program']
@@ -249,20 +270,11 @@ exports.rewriteSource = (code, filename) ->
         node.consequent = _.flatten node.consequent.map (x) ->
           injectList.push(x.loc.start.line)
           [inject(x, filename), x]
-      if node.type == 'IfStatement'
-        ['consequent', 'alternate'].forEach (src) ->
-          if node[src]? && node[src].type != 'BlockStatement'
-            node[src] =
-              type: 'BlockStatement'
-              body: [node[src]]
-      if node.type in ['ForInStatement', 'ForStatement', 'WhileStatement', 'WithStatement', 'DoWhileStatement'] && node.body? && node.body.type != 'BlockStatement'
-        node.body =
-          type: 'BlockStatement'
-          body: [node.body]
 
+  # wrap it up
   trackedLines = _.sortBy(_.unique(injectList), _.identity)
-
-  writeFile(code, escodegen.generate(ast, { indent: "  " }), filename, trackedLines)
+  outcode = escodegen.generate(ast, { indent: "  " })
+  writeFile(code, outcode, filename, trackedLines)
 
 
 exports.rewriteFolder = (source, target, options, callback) ->
