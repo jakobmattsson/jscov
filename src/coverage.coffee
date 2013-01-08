@@ -250,10 +250,14 @@ exports.rewriteSource = (code, filename) ->
           body: [node.body]
 
   # remove extra empty statements trailing returns without semicolons (no semantic difference, just to keep in line with JSCoverage)
+  # remove dead code (no semantic difference - JSCovergage, are you happy now?)
   escodegen.traverse ast,
     enter: (node) ->
       if node.type in ['BlockStatement', 'Program']
-        node.body = node.body.filter (x, i) -> !(x.type == 'EmptyStatement' && i-1 >= 0 && node.body[i-1].type in ['ReturnStatement', 'VariableDeclaration', 'ExpressionStatement'] && node.body[i-1].loc.end.line == x.loc.start.line)
+        node.body = node.body.filter (x, i) ->
+          !(x.type == 'EmptyStatement' && i-1 >= 0 && node.body[i-1].type in ['ReturnStatement', 'VariableDeclaration', 'ExpressionStatement'] && node.body[i-1].loc.end.line == x.loc.start.line) &&
+          !(x.type == 'IfStatement' && x.test.type == 'Literal' && !x.test.value)
+
 
   # insert the coverage information
   escodegen.traverse ast,
