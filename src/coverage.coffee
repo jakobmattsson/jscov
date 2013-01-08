@@ -61,6 +61,19 @@ reservedWords = [
   'static'
 ]
 
+# Check if these are treated as keywords as well...
+#
+# abstract  implements  protected
+# boolean instanceOf  public
+# byte  int short
+# char  interface static
+# double  long  synchronized
+# false native  throws
+# final null  transient
+# float package true
+# goto  private
+
+
 
 isValidIdentifier = (name) ->
   name? && !(name in reservedWords) && (name.toString().match(/^[_a-zA-Z][_a-zA-Z0-9]*$/) || name.toString().match(/^[1-9][0-9]*$/))
@@ -97,6 +110,26 @@ getVal = (node) ->
   else
     "nope"
 
+
+numberProperty = (property) ->
+  type: 'MemberExpression'
+  computed: false
+  object: { type: 'Identifier', name: 'Number' }
+  property: { type: 'Identifier', name: property }
+
+
+replaceNegativeInfinities = (ast) ->
+  escodegen.traverse ast,
+    enter: (node) ->
+      if node.type == 'UnaryExpression' && node.operator == '-' && node.argument.type == 'Literal' && node.argument.value == Infinity
+        replaceNode(node, numberProperty('NEGATIVE_INFINITY'))
+
+
+replacePositiveInfinities = (ast) ->
+  escodegen.traverse ast,
+    enter: (node) ->
+      if node.type == 'Literal' && node.value == Infinity
+        replaceNode(node, numberProperty('POSITIVE_INFINITY'))
 
 
 formatTree = (ast) ->
@@ -143,27 +176,8 @@ formatTree = (ast) ->
         else if node.type == 'WhileStatement' && node.test.type == 'Literal'
           node.test.value = !!node.test.value
 
-  # step 2: replace negative infinities
-  escodegen.traverse ast,
-    enter: (node) ->
-      if node.type == 'UnaryExpression' && node.argument.type == 'Literal' && node.argument.value == Infinity
-        replaceNode(node, {
-          type: 'MemberExpression'
-          computed: false
-          object: { type: 'Identifier', name: 'Number' }
-          property: { type: 'Identifier', name: 'NEGATIVE_INFINITY' }
-        })
-
-  # step 3: replace positive infinities
-  escodegen.traverse ast,
-    enter: (node) ->
-      if node.type == 'Literal' && typeof node.value == 'number' && node.value == Infinity
-        replaceNode(node, {
-          type: 'MemberExpression'
-          computed: false
-          object: { type: 'Identifier', name: 'Number' }
-          property: { type: 'Identifier', name: 'POSITIVE_INFINITY' }
-        })
+  replaceNegativeInfinities(ast)
+  replacePositiveInfinities(ast)
 
 
 
