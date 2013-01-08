@@ -5,110 +5,27 @@ esprima = require 'esprima'
 escodegen = require 'escodegen'
 wrench = require 'wrench'
 coffee = require 'coffee-script'
+tools = require './tools'
 
 
 coverageVar = '_$jscoverage'
 
 
-# Tempting to use eval here, but I went with a more verbose solution
-evalBinaryExpression = do ->
-  methods =
-    '+': (x, y) -> x + y
-    '-': (x, y) -> x - y
-    '*': (x, y) -> x * y
-    '%': (x, y) -> x % y
-    '/': (x, y) -> x / y
-    '<<': (x, y) -> x << y
-    '>>': (x, y) -> x >> y
-    '>>>': (x, y) -> x >>> y
-  (arg1, op, arg2) ->
-    method = methods[op]
-    throw "operator not supported" if !method?
-    method(arg1, arg2)
-
-
-reservedWords = [
-  'break'
-  'case'
-  'catch'
-  'continue'
-  'debugger'
-  'default'
-  'delete'
-  'do'
-  'else'
-  'finally'
-  'for'
-  'function'
-  'if'
-  'in'
-  'instanceof'
-  'new'
-  'return'
-  'switch'
-  'this'
-  'throw'
-  'try'
-  'typeof'
-  'var'
-  'void'
-  'while'
-  'with'
-
-  'null'
-  'true'
-  'false'
-
-  # These are not keyword according to JavaScript, but JSCoverage treats them as if they were.
-  # Just follow suit...
-  'throws'
-  'static'
-  'abstract'
-  'implements'
-  'protected'
-  'boolean'
-  'public'
-  'byte'
-  'int'
-  'short'
-  'char'
-  'interface'
-  'double'
-  'long'
-  'synchronized'
-  'native'
-  'final'
-  'transient'
-  'float'
-  'package'
-  'goto'
-  'private'
-]
 
 
 
-isValidIdentifier = (name) ->
-  name? && !(name in reservedWords) && (name.toString().match(/^[_a-zA-Z][_a-zA-Z0-9]*$/) || name.toString().match(/^[1-9][0-9]*$/))
-
-
-replaceNode = (node, newVal) ->
-  props = Object.getOwnPropertyNames(node)
-  props.forEach (prop) -> delete node[prop]
-
-  Object.keys(newVal).forEach (prop) ->
-    node[prop] = newVal[prop]
 
 
 makeLiteral = (node, value) ->
   if typeof value == 'number' && value < 0
-    replaceNode node,
+    tools.replaceProperties node,
       type: 'UnaryExpression'
       operator: '-'
       argument:
         type: 'Literal'
         value: -value
   else
-    replaceNode node,
+    tools.replaceProperties node,
       type: 'Literal'
       value: value
 
@@ -133,7 +50,7 @@ replaceAllNodes = ({ ast, predicate, replacement }) ->
   escodegen.traverse ast,
     enter: (node) ->
       if predicate(node)
-        replaceNode(node, replacement(node))
+        tools.replaceProperties(node, replacement(node))
 
 
 replaceNegativeInfinities = (ast) ->
@@ -159,13 +76,13 @@ formatTree = (ast) ->
     format = false
     escodegen.traverse ast,
       enter: (node) ->
-        if node.type == 'MemberExpression' && node.computed && node.property && node.property.type == 'Literal' && isValidIdentifier(node.property.value)
+        if node.type == 'MemberExpression' && node.computed && node.property && node.property.type == 'Literal' && tools.isValidIdentifier(node.property.value)
           if node.property.value.toString().match(/^[1-9][0-9]*$/)
             node.property = { type: 'Literal', value: parseInt(node.property.value, 10) }
           else
             node.computed = false
             node.property = { type: 'Identifier', name: node.property.value }
-        else if node.type == 'MemberExpression' && !node.computed && node.property.type == 'Identifier' && node.property.name in reservedWords
+        else if node.type == 'MemberExpression' && !node.computed && node.property.type == 'Identifier' && tools.isReservedWord(node.property.name)
           node.computed = true
           makeLiteral(node.property, node.property.name)
         else if node.type == 'BinaryExpression' && node.left.type == 'Literal' && node.right.type == 'Literal' && typeof node.left.value == 'string' && typeof node.right.value == 'string' && node.operator == '+'
@@ -175,7 +92,7 @@ formatTree = (ast) ->
           lv = getVal(node.left)
           rv = getVal(node.right)
           if typeof lv == 'number' && typeof rv == 'number' && node.operator in ['+', '-', '*', '%', '/', '<<', '>>', '>>>']
-            binval = evalBinaryExpression(lv, node.operator, rv)
+            binval = tools.evalBinaryExpression(lv, node.operator, rv)
             makeLiteral(node, binval)
             format = true
         else if node.type == 'UnaryExpression' && node.argument.type == 'Literal'
@@ -188,9 +105,9 @@ formatTree = (ast) ->
         else if node.type == 'ConditionalExpression' && node.test.type == 'Literal'
           if typeof node.test.value == 'string' || typeof node.test.value == 'number' || typeof node.test.value == 'boolean'
             if node.test.value
-              replaceNode(node, node.consequent)
+              tools.replaceProperties(node, node.consequent)
             else
-              replaceNode(node, node.alternate)
+              tools.replaceProperties(node, node.alternate)
         else if node.type == 'WhileStatement' && node.test.type == 'Literal'
           node.test.value = !!node.test.value
 

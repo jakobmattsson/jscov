@@ -53,3 +53,4 @@ Running the tests requires jscoverage to be installed. This is because the main 
 * Add some more test scaffolding, based on other peoples code in order to analyse coding styles other than my own.
 * Support different encodings (compare with JSCoverage on that as well)
 * Compare the runtime of JSCoverage vs jscov (for fun and for presenting the difference)
+* Do code-coverage testing ("yo dawg...")
