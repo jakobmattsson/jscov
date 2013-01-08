@@ -55,23 +55,35 @@ reservedWords = [
   'while'
   'with'
 
+  'null'
+  'true'
+  'false'
+
   # These are not keyword according to JavaScript, but JSCoverage treats them as if they were.
   # Just follow suit...
   'throws'
   'static'
+  'abstract'
+  'implements'
+  'protected'
+  'boolean'
+  'public'
+  'byte'
+  'int'
+  'short'
+  'char'
+  'interface'
+  'double'
+  'long'
+  'synchronized'
+  'native'
+  'final'
+  'transient'
+  'float'
+  'package'
+  'goto'
+  'private'
 ]
-
-# Check if these are treated as keywords as well...
-#
-# abstract  implements  protected
-# boolean instanceOf  public
-# byte  int short
-# char  interface static
-# double  long  synchronized
-# false native  throws
-# final null  transient
-# float package true
-# goto  private
 
 
 
