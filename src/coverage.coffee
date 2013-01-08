@@ -208,7 +208,7 @@ writeFile = do ->
 
   (originalCode, coveredCode, filename, trackedLines) ->
 
-    originalSource = originalCode.split('\n').map (line) -> sourceMappings.reduce(((src, f) -> f(src)), line)
+    originalSource = originalCode.split(/\r?\n/g).map (line) -> sourceMappings.reduce(((src, f) -> f(src)), line)
 
     # useless trimming - just to keep the semantics the same as for jscoverage
     originalSource = originalSource.slice(0, -1) if _.last(originalSource) == '""'
@@ -224,7 +224,7 @@ writeFile = do ->
     output.push coveredCode
     output.push "_$jscoverage['#{filename}'].source = [" + originalSource.join(",") + "];"
 
-    output.join('\n')
+    output.join('\n') # should maybe windows style line-endings be used here in some cases?
 
 
 exports.rewriteSource = (code, filename) ->
