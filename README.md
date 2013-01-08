@@ -50,8 +50,6 @@ Running the tests requires jscoverage to be installed. This is because the main 
 ## Todo
 
 * Some characters in regexps appears to be improperly escaped, for example $. Investigate.
-* Putting unicode characters in comments
 * Add some more test scaffolding, based on other peoples code in order to analyse coding styles other than my own.
 * Support different encodings (compare with JSCoverage on that as well)
-* Unicode to Numeric Entity code
 * Compare the runtime of JSCoverage vs jscov (for fun and for presenting the difference)

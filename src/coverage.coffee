@@ -206,6 +206,16 @@ inject = (x, filename) ->
           value: filename
 
 
+strToNumericEntity = (x) ->
+  arr = [0...x.length].map (i) ->
+    cc = x.charCodeAt(i)
+    if cc < 128
+      x[i]
+    else
+      '&#' + cc + ';'
+  arr.join('')
+
+
 writeFile = do ->
   sourceMappings = [
     (x) -> x.replace(/&/g, '&amp;')
@@ -213,14 +223,7 @@ writeFile = do ->
     (x) -> x.replace(/>/g, '&gt;')
     (x) -> x.replace(/\\/g, '\\\\')
     (x) -> x.replace(/"/g, '\\"')
-    (x) ->
-      arr = [0...x.length].map (i) ->
-        cc = x.charCodeAt(i)
-        if cc < 128
-          x[i]
-        else
-          '&#' + cc + ';'
-      arr.join('')
+    (x) -> strToNumericEntity(x)
     (x) -> '"' + x + '"'
   ]
 
@@ -275,7 +278,6 @@ exports.rewriteSource = (code, filename) ->
         node.body = node.body.filter (x, i) ->
           !(x.type == 'EmptyStatement' && i-1 >= 0 && node.body[i-1].type in ['ReturnStatement', 'VariableDeclaration', 'ExpressionStatement'] && node.body[i-1].loc.end.line == x.loc.start.line) &&
           !(x.type == 'IfStatement' && x.test.type == 'Literal' && !x.test.value)
-
 
   # insert the coverage information
   escodegen.traverse ast,
