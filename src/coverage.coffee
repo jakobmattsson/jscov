@@ -117,19 +117,25 @@ numberProperty = (property) ->
   object: { type: 'Identifier', name: 'Number' }
   property: { type: 'Identifier', name: property }
 
-
-replaceNegativeInfinities = (ast) ->
+replaceAllNodes = ({ ast, predicate, replacement }) ->
   escodegen.traverse ast,
     enter: (node) ->
-      if node.type == 'UnaryExpression' && node.operator == '-' && node.argument.type == 'Literal' && node.argument.value == Infinity
-        replaceNode(node, numberProperty('NEGATIVE_INFINITY'))
+      if predicate(node)
+        replaceNode(node, replacement(node))
+
+
+replaceNegativeInfinities = (ast) ->
+  replaceAllNodes
+    ast: ast
+    predicate: (node) -> node.type == 'UnaryExpression' && node.operator == '-' && node.argument.type == 'Literal' && node.argument.value == Infinity
+    replacement: -> numberProperty('NEGATIVE_INFINITY')
 
 
 replacePositiveInfinities = (ast) ->
-  escodegen.traverse ast,
-    enter: (node) ->
-      if node.type == 'Literal' && node.value == Infinity
-        replaceNode(node, numberProperty('POSITIVE_INFINITY'))
+  replaceAllNodes
+    ast: ast
+    predicate: (node) -> node.type == 'Literal' && node.value == Infinity
+    replacement: -> numberProperty('POSITIVE_INFINITY')
 
 
 formatTree = (ast) ->
@@ -183,7 +189,7 @@ formatTree = (ast) ->
 
 
 
-inject = (x, filename) ->
+coverageNode = (x, filename) ->
   type: 'ExpressionStatement'
   expression:
     type: 'UpdateExpression'
@@ -286,20 +292,20 @@ exports.rewriteSource = (code, filename) ->
         node.body = _.flatten node.body.map (x) ->
           if x.expression?.type == 'FunctionExpression'
             injectList.push(x.expression.loc.start.line)
-            [inject(x.expression, filename), x]
+            [coverageNode(x.expression, filename), x]
           else if x.expression?.type == 'CallExpression'
             injectList.push(x.expression.loc.start.line)
-            [inject(x.expression, filename), x]
+            [coverageNode(x.expression, filename), x]
           else if x.type == 'FunctionDeclaration'
             injectList.push(x.body.loc.start.line)
-            [inject(x.body, filename), x]
+            [coverageNode(x.body, filename), x]
           else
             injectList.push(x.loc.start.line)
-            [inject(x, filename), x]
+            [coverageNode(x, filename), x]
       if node.type == 'SwitchCase'
         node.consequent = _.flatten node.consequent.map (x) ->
           injectList.push(x.loc.start.line)
-          [inject(x, filename), x]
+          [coverageNode(x, filename), x]
 
   # wrap it up
   trackedLines = _.sortBy(_.unique(injectList), _.identity)
