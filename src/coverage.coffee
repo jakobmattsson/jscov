@@ -6,6 +6,7 @@ escodegen = require 'escodegen'
 wrench = require 'wrench'
 coffee = require 'coffee-script'
 tools = require './tools'
+estools = require './estools'
 
 
 coverageVar = '_$jscoverage'
@@ -16,55 +17,6 @@ coverageVar = '_$jscoverage'
 
 
 
-makeLiteral = (node, value) ->
-  if typeof value == 'number' && value < 0
-    tools.replaceProperties node,
-      type: 'UnaryExpression'
-      operator: '-'
-      argument:
-        type: 'Literal'
-        value: -value
-  else
-    tools.replaceProperties node,
-      type: 'Literal'
-      value: value
-
-
-mathable = (node) -> node.type == 'Literal' || (node.type == 'UnaryExpression' && node.operator == '-' && node.argument.type == 'Literal')
-getVal = (node) ->
-  if node.type == 'Literal' && typeof node.value == 'number'
-    node.value
-  else if node.type == 'UnaryExpression' && node.operator == '-' && node.argument.type == 'Literal' && typeof node.argument.value == 'number'
-    -node.argument.value
-  else
-    "nope"
-
-
-numberProperty = (property) ->
-  type: 'MemberExpression'
-  computed: false
-  object: { type: 'Identifier', name: 'Number' }
-  property: { type: 'Identifier', name: property }
-
-replaceAllNodes = ({ ast, predicate, replacement }) ->
-  escodegen.traverse ast,
-    enter: (node) ->
-      if predicate(node)
-        tools.replaceProperties(node, replacement(node))
-
-
-replaceNegativeInfinities = (ast) ->
-  replaceAllNodes
-    ast: ast
-    predicate: (node) -> node.type == 'UnaryExpression' && node.operator == '-' && node.argument.type == 'Literal' && node.argument.value == Infinity
-    replacement: -> numberProperty('NEGATIVE_INFINITY')
-
-
-replacePositiveInfinities = (ast) ->
-  replaceAllNodes
-    ast: ast
-    predicate: (node) -> node.type == 'Literal' && node.value == Infinity
-    replacement: -> numberProperty('POSITIVE_INFINITY')
 
 
 formatTree = (ast) ->
@@ -76,79 +28,49 @@ formatTree = (ast) ->
     format = false
     escodegen.traverse ast,
       enter: (node) ->
-        if node.type == 'MemberExpression' && node.computed && node.property && node.property.type == 'Literal' && tools.isValidIdentifier(node.property.value)
-          if node.property.value.toString().match(/^[1-9][0-9]*$/)
-            node.property = { type: 'Literal', value: parseInt(node.property.value, 10) }
-          else
+        if ['property', 'argument', 'test'].some((prop) -> node[prop]?.type == 'Literal')
+          if node.type == 'MemberExpression' && node.computed && tools.isValidIdentifier(node.property.value)
             node.computed = false
             node.property = { type: 'Identifier', name: node.property.value }
-        else if node.type == 'MemberExpression' && !node.computed && node.property.type == 'Identifier' && tools.isReservedWord(node.property.name)
-          node.computed = true
-          makeLiteral(node.property, node.property.name)
-        else if node.type == 'BinaryExpression' && node.left.type == 'Literal' && node.right.type == 'Literal' && typeof node.left.value == 'string' && typeof node.right.value == 'string' && node.operator == '+'
-          makeLiteral(node, node.left.value + node.right.value)
-          format = true
-        else if node.type == 'BinaryExpression' && mathable(node.left) && mathable(node.right)
-          lv = getVal(node.left)
-          rv = getVal(node.right)
-          if typeof lv == 'number' && typeof rv == 'number' && node.operator in ['+', '-', '*', '%', '/', '<<', '>>', '>>>']
-            binval = tools.evalBinaryExpression(lv, node.operator, rv)
-            makeLiteral(node, binval)
+          else if node.type == 'MemberExpression' && node.computed && node.property.value?.toString().match(/^[1-9][0-9]*$/)
+            node.property = estools.createLiteral(parseInt(node.property.value, 10))
+          else if node.type == 'UnaryExpression'
+            if node.operator == '!'
+              estools.replaceWithLiteral(node, !node.argument.value)
+              format = true
+            if node.operator == "~" && typeof node.argument.value == 'number'
+              estools.replaceWithLiteral(node, ~node.argument.value)
+              format = true
+          else if node.type == 'ConditionalExpression'
+            if typeof node.test.value == 'string' || typeof node.test.value == 'number' || typeof node.test.value == 'boolean'
+              if node.test.value
+                tools.replaceProperties(node, node.consequent)
+              else
+                tools.replaceProperties(node, node.alternate)
+          else if node.type == 'WhileStatement' # this should probably go for other types of loops as well
+            node.test.value = !!node.test.value
+        else
+          if node.type == 'MemberExpression' && !node.computed && node.property.type == 'Identifier' && tools.isReservedWord(node.property.name)
+            node.computed = true
+            node.property = estools.createLiteral(node.property.name)
+          else if node.type == 'BinaryExpression' && node.left.type == 'Literal' && node.right.type == 'Literal' && typeof node.left.value == 'string' && typeof node.right.value == 'string' && node.operator == '+'
+            estools.replaceWithLiteral(node, node.left.value + node.right.value)
             format = true
-        else if node.type == 'UnaryExpression' && node.argument.type == 'Literal'
-          if node.operator == '!'
-            makeLiteral(node, !node.argument.value)
-            format = true
-          if node.operator == "~" && typeof node.argument.value == 'number'
-            makeLiteral(node, ~node.argument.value)
-            format = true
-        else if node.type == 'ConditionalExpression' && node.test.type == 'Literal'
-          if typeof node.test.value == 'string' || typeof node.test.value == 'number' || typeof node.test.value == 'boolean'
-            if node.test.value
-              tools.replaceProperties(node, node.consequent)
-            else
-              tools.replaceProperties(node, node.alternate)
-        else if node.type == 'WhileStatement' && node.test.type == 'Literal'
-          node.test.value = !!node.test.value
+          else if node.type == 'BinaryExpression' && estools.mathable(node.left) && estools.mathable(node.right)
+            lv = estools.getVal(node.left)
+            rv = estools.getVal(node.right)
+            if typeof lv == 'number' && typeof rv == 'number' && node.operator in ['+', '-', '*', '%', '/', '<<', '>>', '>>>']
+              binval = tools.evalBinaryExpression(lv, node.operator, rv)
+              estools.replaceWithLiteral(node, binval)
+              format = true
 
-  replaceNegativeInfinities(ast)
-  replacePositiveInfinities(ast)
+  estools.replaceNegativeInfinities(ast)
+  estools.replacePositiveInfinities(ast)
 
 
 
 
 
-coverageNode = (x, filename) ->
-  type: 'ExpressionStatement'
-  expression:
-    type: 'UpdateExpression'
-    operator: '++'
-    prefix: false
-    argument:
-      type: 'MemberExpression'
-      computed: true
-      property:
-        type: 'Literal'
-        value: x.loc.start.line
-      object:
-        type: 'MemberExpression'
-        computed: true
-        object:
-          type: 'Identifier'
-          name: coverageVar
-        property:
-          type: 'Literal'
-          value: filename
-
-
-strToNumericEntity = (x) ->
-  arr = [0...x.length].map (i) ->
-    cc = x.charCodeAt(i)
-    if cc < 128
-      x[i]
-    else
-      '&#' + cc + ';'
-  arr.join('')
 
 
 writeFile = do ->
@@ -158,7 +80,7 @@ writeFile = do ->
     (x) -> x.replace(/>/g, '&gt;')
     (x) -> x.replace(/\\/g, '\\\\')
     (x) -> x.replace(/"/g, '\\"')
-    (x) -> strToNumericEntity(x)
+    (x) -> tools.strToNumericEntity(x)
     (x) -> '"' + x + '"'
   ]
 
@@ -205,14 +127,14 @@ exports.rewriteSource = (code, filename) ->
           type: 'BlockStatement'
           body: [node.body]
 
-  # remove extra empty statements trailing returns without semicolons (no semantic difference, just to keep in line with JSCoverage)
-  # remove dead code (no semantic difference - JSCovergage, are you happy now?)
+  # Remove extra empty statements trailing returns without semicolons (no semantic difference, just to keep in line with JSCoverage)
+  # Also, remove dead code (no semantic difference - JSCovergage, are you happy now?)
   escodegen.traverse ast,
     enter: (node) ->
       if node.type in ['BlockStatement', 'Program']
         node.body = node.body.filter (x, i) ->
           !(x.type == 'EmptyStatement' && i-1 >= 0 && node.body[i-1].type in ['ReturnStatement', 'VariableDeclaration', 'ExpressionStatement'] && node.body[i-1].loc.end.line == x.loc.start.line) &&
-          !(x.type == 'IfStatement' && x.test.type == 'Literal' && !x.test.value)
+          !(x.type == 'IfStatement' && x.test.type == 'Literal' && !x.test.value) # this should probably go for all the loops as well. write tests to prove/disprove it.
 
   # insert the coverage information
   escodegen.traverse ast,
@@ -221,20 +143,20 @@ exports.rewriteSource = (code, filename) ->
         node.body = _.flatten node.body.map (x) ->
           if x.expression?.type == 'FunctionExpression'
             injectList.push(x.expression.loc.start.line)
-            [coverageNode(x.expression, filename), x]
+            [estools.coverageNode(x.expression, filename, coverageVar), x]
           else if x.expression?.type == 'CallExpression'
             injectList.push(x.expression.loc.start.line)
-            [coverageNode(x.expression, filename), x]
+            [estools.coverageNode(x.expression, filename, coverageVar), x]
           else if x.type == 'FunctionDeclaration'
             injectList.push(x.body.loc.start.line)
-            [coverageNode(x.body, filename), x]
+            [estools.coverageNode(x.body, filename, coverageVar), x]
           else
             injectList.push(x.loc.start.line)
-            [coverageNode(x, filename), x]
+            [estools.coverageNode(x, filename, coverageVar), x]
       if node.type == 'SwitchCase'
         node.consequent = _.flatten node.consequent.map (x) ->
           injectList.push(x.loc.start.line)
-          [coverageNode(x, filename), x]
+          [estools.coverageNode(x, filename, coverageVar), x]
 
   # wrap it up
   trackedLines = _.sortBy(_.unique(injectList), _.identity)

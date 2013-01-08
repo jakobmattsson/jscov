@@ -1,3 +1,24 @@
+# this should be stored as a hash, not a list (look at how it's used!)
+# should also sort these alphabetically...
+reservedWords = [
+  # actual keywords
+  'break',        'case',         'catch',        'continue',     'debugger'
+  'default',      'delete',       'do',           'else',         'finally'
+  'for',          'function',     'if',           'in',           'instanceof'
+  'new',          'return',       'switch',       'this',         'throw'
+  'try',          'typeof',       'var',          'void',         'while'
+  'with',         'null',         'true',         'false'
+
+  # reversed words
+  'throws',       'static',       'abstract',     'implements',   'protected'
+  'boolean',      'public',       'byte',         'int',          'short'
+  'char',         'interface',    'double',       'long',         'synchronized'
+  'native',       'final',        'transient',    'float',        'package'
+  'goto',         'private'
+]
+
+
+
 exports.evalBinaryExpression = do ->
   # Tempting to use eval here,
   # but I went with a more verbose solution
@@ -17,81 +38,32 @@ exports.evalBinaryExpression = do ->
 
 
 
-exports.replaceProperties = (node, newVal) ->
-  props = Object.getOwnPropertyNames(node)
-  props.forEach (prop) -> delete node[prop]
+exports.replaceProperties = (obj, newProps) ->
+  props = Object.getOwnPropertyNames(obj)
+  props.forEach (prop) -> delete obj[prop]
 
-  Object.keys(newVal).forEach (prop) ->
-    node[prop] = newVal[prop]
-
-
-
-reservedWords = [
-  'break'
-  'case'
-  'catch'
-  'continue'
-  'debugger'
-  'default'
-  'delete'
-  'do'
-  'else'
-  'finally'
-  'for'
-  'function'
-  'if'
-  'in'
-  'instanceof'
-  'new'
-  'return'
-  'switch'
-  'this'
-  'throw'
-  'try'
-  'typeof'
-  'var'
-  'void'
-  'while'
-  'with'
-
-  'null'
-  'true'
-  'false'
-
-  # These are not keyword according to JavaScript, but JSCoverage treats them as if they were.
-  # Just follow suit...
-  'throws'
-  'static'
-  'abstract'
-  'implements'
-  'protected'
-  'boolean'
-  'public'
-  'byte'
-  'int'
-  'short'
-  'char'
-  'interface'
-  'double'
-  'long'
-  'synchronized'
-  'native'
-  'final'
-  'transient'
-  'float'
-  'package'
-  'goto'
-  'private'
-]
+  Object.getOwnPropertyNames(newProps).forEach (prop) ->
+    obj[prop] = newProps[prop]
 
 
-
+# this regexp is not even correct. Identifiers can contain unicode characters.
+# Write a test for it and fix it
 exports.isValidIdentifier = (name) ->
-  name? && !(name in reservedWords) && (name.toString().match(/^[_a-zA-Z][_a-zA-Z0-9]*$/) || name.toString().match(/^[1-9][0-9]*$/))
-
-
-exports.isReservedWord = (name) -> name in reservedWords
-
+  name?.toString().match(/^[_a-zA-Z][_a-zA-Z0-9]*$/) &&
+  name not in reservedWords
 
 
 
+exports.isReservedWord = (name) ->
+  name in reservedWords
+
+
+
+exports.strToNumericEntity = (str) ->
+  symbols = [0...str.length].map (i) ->
+    charCode = str.charCodeAt(i)
+    if charCode < 128
+      str[i]
+    else
+      '&#' + charCode + ';'
+  symbols.join('')
