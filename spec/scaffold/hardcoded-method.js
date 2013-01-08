@@ -1,16 +1,5 @@
-x["y"].f();
-x["with"].f();
-x["6"].f();
-x["06"].f();
-x["0xAB"].f();
-x["6x"].f();
-x["+++y"].f();
 
-
-while (true) { }
-while ("hej") { }
-while (123) { }
-
-
-n = 1e+400
-m = Number.POSITIVE_INFINITY
+// are there more kinds of expressions like this that should be tested?
+if (false) {
+  f();
+}

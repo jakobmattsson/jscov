@@ -1,6 +1,6 @@
 if [ `which jscoverage` ];
 then
-  jscoverage $1 $2
+  jscoverage --encoding=utf-8 $1 $2
 else
-  ./node-jscoverage/jscoverage $1 $2
+  ./node-jscoverage/jscoverage --encoding=utf-8 $1 $2
 fi

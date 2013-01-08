@@ -84,6 +84,17 @@ makeLiteral = (node, value) ->
     node.value = value
 
 
+mathable = (node) -> node.type == 'Literal' || (node.type == 'UnaryExpression' && node.operator == '-' && node.argument.type == 'Literal')
+getVal = (node) ->
+  if node.type == 'Literal' && typeof node.value == 'number'
+    node.value
+  else if node.type == 'UnaryExpression' && node.operator == '-' && node.argument.type == 'Literal' && typeof node.argument.value == 'number'
+    -node.argument.value
+  else
+    "nope"
+
+
+
 formatTree = (ast) ->
   # formatting (no difference in result, just here to give it exactly the same semantics as JSCoverage)
   # this block should be part of the comparisons in the tests; not the source
@@ -102,12 +113,15 @@ formatTree = (ast) ->
         else if node.type == 'MemberExpression' && !node.computed && node.property.type == 'Identifier' && node.property.name in reservedWords
           node.computed = true
           makeLiteral(node.property, node.property.name)
-        else if node.type == 'BinaryExpression' && node.left.type == 'Literal' && node.right.type == 'Literal'
-          if typeof node.left.value == 'string' && typeof node.right.value == 'string' && node.operator == '+'
-            makeLiteral(node, node.left.value + node.right.value)
-            format = true
-          if typeof node.left.value == 'number' && typeof node.right.value == 'number' && node.operator in ['+', '-', '*', '%', '/', '<<', '>>', '>>>']
-            makeLiteral(node, evalBinaryExpression(node.left.value, node.operator, node.right.value))
+        else if node.type == 'BinaryExpression' && node.left.type == 'Literal' && node.right.type == 'Literal' && typeof node.left.value == 'string' && typeof node.right.value == 'string' && node.operator == '+'
+          makeLiteral(node, node.left.value + node.right.value)
+          format = true
+        else if node.type == 'BinaryExpression' && mathable(node.left) && mathable(node.right)
+          lv = getVal(node.left)
+          rv = getVal(node.right)
+          if typeof lv == 'number' && typeof rv == 'number' && node.operator in ['+', '-', '*', '%', '/', '<<', '>>', '>>>']
+            binval = evalBinaryExpression(lv, node.operator, rv)
+            makeLiteral(node, binval)
             format = true
         else if node.type == 'UnaryExpression' && node.argument.type == 'Literal'
           if node.operator == '!'
@@ -124,13 +138,30 @@ formatTree = (ast) ->
               replaceNode(node, node.alternate)
         else if node.type == 'WhileStatement' && node.test.type == 'Literal'
           node.test.value = !!node.test.value
-        else if node.type == 'Literal' && typeof node.value == 'number' && node.value == Infinity
-            replaceNode(node, {
-              type: 'MemberExpression'
-              computed: false
-              object: { type: 'Identifier', name: 'Number' }
-              property: { type: 'Identifier', name: 'POSITIVE_INFINITY' }
-            })
+
+  # step 2: replace negative infinities
+  escodegen.traverse ast,
+    enter: (node) ->
+      if node.type == 'UnaryExpression' && node.argument.type == 'Literal' && node.argument.value == Infinity
+        replaceNode(node, {
+          type: 'MemberExpression'
+          computed: false
+          object: { type: 'Identifier', name: 'Number' }
+          property: { type: 'Identifier', name: 'NEGATIVE_INFINITY' }
+        })
+
+  # step 3: replace positive infinities
+  escodegen.traverse ast,
+    enter: (node) ->
+      if node.type == 'Literal' && typeof node.value == 'number' && node.value == Infinity
+        replaceNode(node, {
+          type: 'MemberExpression'
+          computed: false
+          object: { type: 'Identifier', name: 'Number' }
+          property: { type: 'Identifier', name: 'POSITIVE_INFINITY' }
+        })
+
+
 
 
 
@@ -164,12 +195,20 @@ writeFile = do ->
     (x) -> x.replace(/>/g, '&gt;')
     (x) -> x.replace(/\\/g, '\\\\')
     (x) -> x.replace(/"/g, '\\"')
+    (x) ->
+      arr = [0...x.length].map (i) ->
+        cc = x.charCodeAt(i)
+        if cc < 128
+          x[i]
+        else
+          '&#' + cc + ';'
+      arr.join('')
     (x) -> '"' + x + '"'
   ]
 
   (originalCode, coveredCode, filename, trackedLines) ->
 
-    originalSource = originalCode.split('\n').map (line) -> sourceMappings.reduce(((src, f) -> f(src)), line)
+    originalSource = originalCode.split(/\r?\n/g).map (line) -> sourceMappings.reduce(((src, f) -> f(src)), line)
 
     # useless trimming - just to keep the semantics the same as for jscoverage
     originalSource = originalSource.slice(0, -1) if _.last(originalSource) == '""'
@@ -185,7 +224,7 @@ writeFile = do ->
     output.push coveredCode
     output.push "_$jscoverage['#{filename}'].source = [" + originalSource.join(",") + "];"
 
-    output.join('\n')
+    output.join('\n') # should maybe windows style line-endings be used here in some cases?
 
 
 exports.rewriteSource = (code, filename) ->
@@ -196,20 +235,9 @@ exports.rewriteSource = (code, filename) ->
 
   formatTree(ast)
 
+  # all optional blocks should be actual blocks (in order to make it possible to put coverage information in them)
   escodegen.traverse ast,
     enter: (node) ->
-      if node.type in ['BlockStatement', 'Program']
-        node.body = _.flatten node.body.map (x) ->
-          if x.type == 'FunctionDeclaration'
-            injectList.push(x.body.loc.start.line)
-            [inject(x.body, filename), x]
-          else
-            injectList.push(x.loc.start.line)
-            [inject(x, filename), x]
-      if node.type == 'SwitchCase'
-        node.consequent = _.flatten node.consequent.map (x) ->
-          injectList.push(x.loc.start.line)
-          [inject(x, filename), x]
       if node.type == 'IfStatement'
         ['consequent', 'alternate'].forEach (src) ->
           if node[src]? && node[src].type != 'BlockStatement'
@@ -221,9 +249,42 @@ exports.rewriteSource = (code, filename) ->
           type: 'BlockStatement'
           body: [node.body]
 
-  trackedLines = _.sortBy(_.unique(injectList), _.identity)
+  # remove extra empty statements trailing returns without semicolons (no semantic difference, just to keep in line with JSCoverage)
+  # remove dead code (no semantic difference - JSCovergage, are you happy now?)
+  escodegen.traverse ast,
+    enter: (node) ->
+      if node.type in ['BlockStatement', 'Program']
+        node.body = node.body.filter (x, i) ->
+          !(x.type == 'EmptyStatement' && i-1 >= 0 && node.body[i-1].type in ['ReturnStatement', 'VariableDeclaration', 'ExpressionStatement'] && node.body[i-1].loc.end.line == x.loc.start.line) &&
+          !(x.type == 'IfStatement' && x.test.type == 'Literal' && !x.test.value)
 
-  writeFile(code, escodegen.generate(ast, { indent: "  " }), filename, trackedLines)
+
+  # insert the coverage information
+  escodegen.traverse ast,
+    enter: (node) ->
+      if node.type in ['BlockStatement', 'Program']
+        node.body = _.flatten node.body.map (x) ->
+          if x.expression?.type == 'FunctionExpression'
+            injectList.push(x.expression.loc.start.line)
+            [inject(x.expression, filename), x]
+          else if x.expression?.type == 'CallExpression'
+            injectList.push(x.expression.loc.start.line)
+            [inject(x.expression, filename), x]
+          else if x.type == 'FunctionDeclaration'
+            injectList.push(x.body.loc.start.line)
+            [inject(x.body, filename), x]
+          else
+            injectList.push(x.loc.start.line)
+            [inject(x, filename), x]
+      if node.type == 'SwitchCase'
+        node.consequent = _.flatten node.consequent.map (x) ->
+          injectList.push(x.loc.start.line)
+          [inject(x, filename), x]
+
+  # wrap it up
+  trackedLines = _.sortBy(_.unique(injectList), _.identity)
+  outcode = escodegen.generate(ast, { indent: "  " })
+  writeFile(code, outcode, filename, trackedLines)
 
 
 exports.rewriteFolder = (source, target, options, callback) ->
