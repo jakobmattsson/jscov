@@ -38,7 +38,7 @@ exports.createLiteral = (value) ->
 
 
 
-exports.isLiteral = (node) ->
+exports.isNumericLiteral = (node) ->
   if node.type == 'Literal'
     true
   else if node.type == 'UnaryExpression' && node.operator == '-' && node.argument.type == 'Literal' && typeof node.argument.value == 'number'
@@ -55,6 +55,19 @@ exports.evalLiteral = (node) ->
     -node.argument.value
   else
     throw "not literal"
+
+
+
+exports.evalLiterals = (ast, evals) ->
+  format = true
+  while format
+    format = false
+    escodegen.traverse ast,
+      enter: (node) ->
+        evals.forEach (n) ->
+          if n.test(node)
+            exports.replaceWithLiteral(node, n.eval(node))
+            format = true
 
 
 
