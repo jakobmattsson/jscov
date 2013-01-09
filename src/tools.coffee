@@ -59,7 +59,7 @@ exports.isReservedWord = do ->
     acc[word] = 1
     acc
   , {}
-  (name) -> !!reservedWordsHash[name]
+  (name) -> !!reservedWordsHash.hasOwnProperty(name)
 
 
 

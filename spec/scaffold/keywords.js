@@ -116,3 +116,11 @@ a.false.f();
 a['true'].f();
 a['null'].f();
 a['false'].f();
+
+
+a['hasOwnProperty'].f();
+a['constructor'].f();
+
+a.hasOwnProperty.f();
+a.constructor.f();
+
