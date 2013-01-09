@@ -14,10 +14,12 @@
   "scripts": {
     "test": "mocha --timeout 20000 --compilers coffee:coffee-script spec/test.coffee",
     "pretest": "coffee -co lib src && rm -rf spec/expect && sh scripts/run-jscoverage.sh spec/scaffold spec/expect",
+    "coverage": "rm -rf .cov && sh scripts/run-jscoverage.sh lib .cov && SRC_DIR=.cov mocha --compilers coffee:coffee-script --reporter mocha-term-cov-reporter spec/test.coffee",
     "prepublish": "coffee -co lib src",
     "prestart": "coffee -co lib src"
   },
   "dependencies": {
+    "mocha-term-cov-reporter": "0.1.0",
     "coffee-script": "1.4.0",
     "wrench": "1.4.4",
     "optimist": "0.3.5",
