@@ -4,9 +4,8 @@ tools = require './tools'
 estools = require './estools'
 
 
+
 exports.formatTree = (ast) ->
-  # formatting (no difference in result, just here to give it exactly the same semantics as JSCoverage)
-  # this block should be part of the comparisons in the tests; not the source
   format = true
 
   while format
@@ -56,17 +55,18 @@ exports.formatTree = (ast) ->
               estools.replaceWithLiteral(node, binval)
               format = true
 
+  # Replace infinities with named constants
   estools.replaceNegativeInfinities(ast)
   estools.replacePositiveInfinities(ast)
 
-  # Remove extra empty statements trailing returns without semicolons (no semantic difference, just to keep in line with JSCoverage)
+  # Remove extra empty statements trailing returns without semicolons
   escodegen.traverse ast,
     enter: (node) ->
       if node.type in ['BlockStatement', 'Program']
         node.body = node.body.filter (x, i) ->
           !(x.type == 'EmptyStatement' && i-1 >= 0 && node.body[i-1].type in ['ReturnStatement', 'VariableDeclaration', 'ExpressionStatement'] && node.body[i-1].loc.end.line == x.loc.start.line)
 
-  # If-statements with literal tests should expand to their content (no semantic difference - JSCovergage, are you happy now?)
+  # If-statements with literal tests should expand to their content
   escodegen.traverse ast,
     enter: (node) ->
       if node.type in ['BlockStatement', 'Program']

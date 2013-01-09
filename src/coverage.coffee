@@ -29,8 +29,6 @@ writeFile = do ->
   (originalCode, coveredCode, filename, trackedLines) ->
 
     originalSource = originalCode.split(/\r?\n/g).map (line) -> sourceMappings.reduce(((src, f) -> f(src)), line)
-
-    # useless trimming - just to keep the semantics the same as for jscoverage
     originalSource = originalSource.slice(0, -1) if _.last(originalSource) == '""'
 
     output = []
@@ -54,6 +52,8 @@ exports.rewriteSource = (code, filename) ->
 
   ast = esprima.parse(code, { loc: true })
 
+  jscoverageFormatting.formatTree(ast)
+
   # all optional blocks should be actual blocks (in order to make it possible to put coverage information in them)
   escodegen.traverse ast,
     enter: (node) ->
@@ -67,8 +67,6 @@ exports.rewriteSource = (code, filename) ->
         node.body =
           type: 'BlockStatement'
           body: [node.body]
-
-  jscoverageFormatting.formatTree(ast)
 
   # insert the coverage information
   escodegen.traverse ast,
