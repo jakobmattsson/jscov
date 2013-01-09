@@ -47,8 +47,15 @@ formatTree = (ast) ->
                 tools.replaceProperties(node, node.consequent)
               else
                 tools.replaceProperties(node, node.alternate)
-          else if node.type == 'WhileStatement' # this should probably go for other types of loops as well
+          else if node.type == 'WhileStatement'
             node.test.value = !!node.test.value
+          else if node.type == 'DoWhileStatement'
+            node.test.value = !!node.test.value
+          else if node.type == 'ForStatement'
+            if node.test.value
+              node.test = null
+            else
+              node.test.value = false
         else
           if node.type == 'MemberExpression' && !node.computed && node.property.type == 'Identifier' && tools.isReservedWord(node.property.name)
             node.computed = true
@@ -128,13 +135,26 @@ exports.rewriteSource = (code, filename) ->
           body: [node.body]
 
   # Remove extra empty statements trailing returns without semicolons (no semantic difference, just to keep in line with JSCoverage)
-  # Also, remove dead code (no semantic difference - JSCovergage, are you happy now?)
   escodegen.traverse ast,
     enter: (node) ->
       if node.type in ['BlockStatement', 'Program']
         node.body = node.body.filter (x, i) ->
-          !(x.type == 'EmptyStatement' && i-1 >= 0 && node.body[i-1].type in ['ReturnStatement', 'VariableDeclaration', 'ExpressionStatement'] && node.body[i-1].loc.end.line == x.loc.start.line) &&
-          !(x.type == 'IfStatement' && x.test.type == 'Literal' && !x.test.value) # this should probably go for all the loops as well. write tests to prove/disprove it.
+          !(x.type == 'EmptyStatement' && i-1 >= 0 && node.body[i-1].type in ['ReturnStatement', 'VariableDeclaration', 'ExpressionStatement'] && node.body[i-1].loc.end.line == x.loc.start.line)
+
+  # If-statements with literal tests should expand to their content (no semantic difference - JSCovergage, are you happy now?)
+  escodegen.traverse ast,
+    enter: (node) ->
+      if node.type in ['BlockStatement', 'Program']
+        node.body = _.flatten node.body.map (x, i) ->
+          if x.type == 'IfStatement' && x.test.type == 'Literal'
+            if x.test.value
+              x.consequent.body
+            else if x.alternate
+              x.alternate.body
+            else
+              []
+          else
+            x
 
   # insert the coverage information
   escodegen.traverse ast,
