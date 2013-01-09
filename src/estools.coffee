@@ -1,7 +1,6 @@
 escodegen = require 'escodegen'
 tools = require './tools'
 _ = require 'underscore'
-estools = exports
 
 
 
@@ -60,7 +59,7 @@ exports.evalLiteral = (node) ->
 
 
 exports.replaceWithLiteral = (node, value) ->
-  tools.replaceProperties(node, estools.createLiteral(value))
+  tools.replaceProperties(node, exports.createLiteral(value))
 
 
 
@@ -89,14 +88,14 @@ exports.coverageNode = (node, filename, identifier) ->
     argument:
       type: 'MemberExpression'
       computed: true
-      property: estools.createLiteral(node.loc.start.line)
+      property: exports.createLiteral(node.loc.start.line)
       object:
         type: 'MemberExpression'
         computed: true
         object:
           type: 'Identifier'
           name: identifier
-        property: estools.createLiteral(filename)
+        property: exports.createLiteral(filename)
 
 
 

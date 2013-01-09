@@ -8,6 +8,7 @@ estools = require './estools'
 exports.formatTree = (ast) ->
   format = true
 
+  # break this into smaller parts and describe what each part is for
   while format
     format = false
     escodegen.traverse ast,

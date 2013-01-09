@@ -51,9 +51,9 @@ exports.rewriteSource = (code, filename) ->
 
   jscoverageFormatting.formatTree(ast)
 
-  estools.addBeforeEveryStatement ast, (x) ->
-    injectList[x.loc.start.line] = 1
-    estools.coverageNode(x, filename, coverageVar)
+  estools.addBeforeEveryStatement ast, (node) ->
+    injectList[node.loc.start.line] = 1
+    estools.coverageNode(node, filename, coverageVar)
 
   trackedLines = _.sortBy(Object.keys(injectList).map((x) -> parseInt(x, 10)), _.identity)
   outcode = escodegen.generate(ast, { indent: "  " })
