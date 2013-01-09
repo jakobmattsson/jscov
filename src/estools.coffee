@@ -37,22 +37,28 @@ exports.createLiteral = (value) ->
     value: value
 
 
+exports.isLiteral = (node) ->
+  if node.type == 'Literal'
+    true
+  else if node.type == 'UnaryExpression' && node.operator == '-' && node.argument.type == 'Literal' && typeof node.argument.value == 'number'
+    true
+  else
+    false
 
-exports.replaceWithLiteral = (node, value) ->
-  tools.replaceProperties(node, estools.createLiteral(value))
 
 
-
-# these two are not very sexy. try to refactor (in particular their usage!)
-exports.mathable = (node) -> node.type == 'Literal' || (node.type == 'UnaryExpression' && node.operator == '-' && node.argument.type == 'Literal')
-exports.getVal = (node) ->
-  if node.type == 'Literal' && typeof node.value == 'number'
+exports.evalLiteral = (node) ->
+  if node.type == 'Literal'
     node.value
   else if node.type == 'UnaryExpression' && node.operator == '-' && node.argument.type == 'Literal' && typeof node.argument.value == 'number'
     -node.argument.value
   else
-    "nope"
+    throw "not literal"
 
+
+
+exports.replaceWithLiteral = (node, value) ->
+  tools.replaceProperties(node, estools.createLiteral(value))
 
 
 

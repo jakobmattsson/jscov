@@ -63,9 +63,9 @@ formatTree = (ast) ->
           else if node.type == 'BinaryExpression' && node.left.type == 'Literal' && node.right.type == 'Literal' && typeof node.left.value == 'string' && typeof node.right.value == 'string' && node.operator == '+'
             estools.replaceWithLiteral(node, node.left.value + node.right.value)
             format = true
-          else if node.type == 'BinaryExpression' && estools.mathable(node.left) && estools.mathable(node.right)
-            lv = estools.getVal(node.left)
-            rv = estools.getVal(node.right)
+          else if node.type == 'BinaryExpression' && estools.isLiteral(node.left) && estools.isLiteral(node.right)
+            lv = estools.evalLiteral(node.left)
+            rv = estools.evalLiteral(node.right)
             if typeof lv == 'number' && typeof rv == 'number' && node.operator in ['+', '-', '*', '%', '/', '<<', '>>', '>>>']
               binval = tools.evalBinaryExpression(lv, node.operator, rv)
               estools.replaceWithLiteral(node, binval)
