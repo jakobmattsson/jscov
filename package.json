@@ -13,8 +13,8 @@
   },
   "scripts": {
     "test": "mocha --timeout 20000 --compilers coffee:coffee-script spec/test.coffee",
-    "pretest": "coffee -co lib src && rm -rf spec/expect && sh scripts/run-jscoverage.sh spec/scaffold spec/expect",
-    "coverage": "rm -rf .cov && sh scripts/run-jscoverage.sh lib .cov && SRC_DIR=.cov mocha --compilers coffee:coffee-script --reporter mocha-term-cov-reporter spec/test.coffee",
+    "coverage": "coffee -co lib src && sh scripts/run-jscoverage.sh lib .cov && SRC_DIR=.cov mocha --compilers coffee:coffee-script --reporter mocha-term-cov-reporter spec/test.coffee",
+    "pretest": "coffee -co lib src && sh scripts/run-jscoverage.sh spec/scaffold spec/expect",
     "prepublish": "coffee -co lib src",
     "prestart": "coffee -co lib src"
   },
