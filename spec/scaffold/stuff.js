@@ -29,9 +29,11 @@ str = "HOLDER “AS IS”"
 str = "åäö"
 
 myvaråäö = 1
+x['$variable'] = 1
 
 
-
+x.myvaråäö.f();
+x['myvaråäö'].f();
 
 
 

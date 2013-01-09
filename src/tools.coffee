@@ -1,19 +1,18 @@
-# should sort these alphabetically to make it easier to read...
 reservedWords = [
   # actual keywords
   'break',        'case',         'catch',        'continue',     'debugger'
-  'default',      'delete',       'do',           'else',         'finally'
-  'for',          'function',     'if',           'in',           'instanceof'
-  'new',          'return',       'switch',       'this',         'throw'
-  'try',          'typeof',       'var',          'void',         'while'
-  'with',         'null',         'true',         'false'
+  'default',      'delete',       'do',           'else',         'false'
+  'finally',      'for',          'function',     'if',           'in'
+  'instanceof',   'new',          'null',         'return',       'switch'
+  'this',         'throw',        'true',         'try',          'typeof'
+  'var',          'void',         'while',        'with'
 
   # reversed words
-  'throws',       'static',       'abstract',     'implements',   'protected'
-  'boolean',      'public',       'byte',         'int',          'short'
-  'char',         'interface',    'double',       'long',         'synchronized'
-  'native',       'final',        'transient',    'float',        'package'
-  'goto',         'private'
+  'abstract',     'boolean',      'byte',         'char',         'double'
+  'final',        'float',        'goto',         'implements',   'int'
+  'interface',    'long',         'native',       'package',      'private'
+  'protected',    'public',       'short',        'static',       'synchronized'
+  'throws',       'transient'
 ]
 
 
@@ -46,10 +45,10 @@ exports.replaceProperties = (obj, newProps) ->
 
 
 
-# this regexp is not even correct. Identifiers can contain unicode characters.
-# Write a test for it and fix it
+# Allowing ALL unicode characters is a little rough
+# Would be nice to make this a bit more specific but I'm not sure how...
 exports.isValidIdentifier = (name) ->
-  name?.toString().match(/^[_a-zA-Z][_a-zA-Z0-9]*$/) &&
+  name?.toString().match(/^[_$a-zA-Z\xA0-\uFFFF][_$a-zA-Z0-9\xA0-\uFFFF]*$/) &&
   !exports.isReservedWord(name)
 
 
