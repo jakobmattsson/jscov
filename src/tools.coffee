@@ -1,5 +1,4 @@
-# this should be stored as a hash, not a list (look at how it's used!)
-# should also sort these alphabetically...
+# should sort these alphabetically to make it easier to read...
 reservedWords = [
   # actual keywords
   'break',        'case',         'catch',        'continue',     'debugger'
@@ -16,6 +15,7 @@ reservedWords = [
   'native',       'final',        'transient',    'float',        'package'
   'goto',         'private'
 ]
+
 
 
 
@@ -50,12 +50,16 @@ exports.replaceProperties = (obj, newProps) ->
 # Write a test for it and fix it
 exports.isValidIdentifier = (name) ->
   name?.toString().match(/^[_a-zA-Z][_a-zA-Z0-9]*$/) &&
-  name not in reservedWords
+  !exports.isReservedWord(name)
 
 
 
-exports.isReservedWord = (name) ->
-  name in reservedWords
+exports.isReservedWord = do ->
+  reservedWordsHash = reservedWords.reduce (acc, word) ->
+    acc[word] = 1
+    acc
+  , {}
+  (name) -> !!reservedWordsHash[name]
 
 
 
