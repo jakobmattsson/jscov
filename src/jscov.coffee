@@ -95,4 +95,4 @@ exports.rewriteFolder = (source, target, options, callback) ->
 
 
 exports.cover = (start, dir, file) ->
-  require path.join(start, process.env.JSCOV || dir, file)
+  path.join(start, process.env.JSCOV || dir, file)

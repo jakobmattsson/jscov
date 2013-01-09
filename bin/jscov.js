@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 var optimist = require('optimist');
-var jscov = require('../lib/coverage');
+var jscov = require('../lib/jscov');
 
 var argv = optimist
   .usage("jscov is a tool that measures code coverage for JavaScript programs.\n\njscov is modelled after JSCoverage (http://siliconforks.com/jscoverage),\nbut implemented in pure JavaScript and can be used as a direct replacement.\n\nUsage: jscov sourcedir targetdir")
