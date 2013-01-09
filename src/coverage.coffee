@@ -7,76 +7,11 @@ wrench = require 'wrench'
 coffee = require 'coffee-script'
 tools = require './tools'
 estools = require './estools'
+jscoverageFormatting = require './jscoverage-formatting'
+
 
 
 coverageVar = '_$jscoverage'
-
-
-
-
-
-
-
-
-
-formatTree = (ast) ->
-  # formatting (no difference in result, just here to give it exactly the same semantics as JSCoverage)
-  # this block should be part of the comparisons in the tests; not the source
-  format = true
-
-  while format
-    format = false
-    escodegen.traverse ast,
-      enter: (node) ->
-        if ['property', 'argument', 'test'].some((prop) -> node[prop]?.type == 'Literal')
-          if node.type == 'MemberExpression' && node.computed && tools.isValidIdentifier(node.property.value)
-            node.computed = false
-            node.property = { type: 'Identifier', name: node.property.value }
-          else if node.type == 'MemberExpression' && node.computed && node.property.value?.toString().match(/^[1-9][0-9]*$/)
-            node.property = estools.createLiteral(parseInt(node.property.value, 10))
-          else if node.type == 'UnaryExpression'
-            if node.operator == '!'
-              estools.replaceWithLiteral(node, !node.argument.value)
-              format = true
-            if node.operator == "~" && typeof node.argument.value == 'number'
-              estools.replaceWithLiteral(node, ~node.argument.value)
-              format = true
-          else if node.type == 'ConditionalExpression'
-            if typeof node.test.value == 'string' || typeof node.test.value == 'number' || typeof node.test.value == 'boolean'
-              if node.test.value
-                tools.replaceProperties(node, node.consequent)
-              else
-                tools.replaceProperties(node, node.alternate)
-          else if node.type == 'WhileStatement'
-            node.test.value = !!node.test.value
-          else if node.type == 'DoWhileStatement'
-            node.test.value = !!node.test.value
-          else if node.type == 'ForStatement'
-            if node.test.value
-              node.test = null
-            else
-              node.test.value = false
-        else
-          if node.type == 'MemberExpression' && !node.computed && node.property.type == 'Identifier' && tools.isReservedWord(node.property.name)
-            node.computed = true
-            node.property = estools.createLiteral(node.property.name)
-          else if node.type == 'BinaryExpression' && node.left.type == 'Literal' && node.right.type == 'Literal' && typeof node.left.value == 'string' && typeof node.right.value == 'string' && node.operator == '+'
-            estools.replaceWithLiteral(node, node.left.value + node.right.value)
-            format = true
-          else if node.type == 'BinaryExpression' && estools.isLiteral(node.left) && estools.isLiteral(node.right)
-            lv = estools.evalLiteral(node.left)
-            rv = estools.evalLiteral(node.right)
-            if typeof lv == 'number' && typeof rv == 'number' && node.operator in ['+', '-', '*', '%', '/', '<<', '>>', '>>>']
-              binval = tools.evalBinaryExpression(lv, node.operator, rv)
-              estools.replaceWithLiteral(node, binval)
-              format = true
-
-  estools.replaceNegativeInfinities(ast)
-  estools.replacePositiveInfinities(ast)
-
-
-
-
 
 
 
@@ -112,13 +47,12 @@ writeFile = do ->
     output.join('\n') # should maybe windows style line-endings be used here in some cases?
 
 
+
 exports.rewriteSource = (code, filename) ->
 
   injectList = []
 
   ast = esprima.parse(code, { loc: true })
-
-  formatTree(ast)
 
   # all optional blocks should be actual blocks (in order to make it possible to put coverage information in them)
   escodegen.traverse ast,
@@ -134,27 +68,7 @@ exports.rewriteSource = (code, filename) ->
           type: 'BlockStatement'
           body: [node.body]
 
-  # Remove extra empty statements trailing returns without semicolons (no semantic difference, just to keep in line with JSCoverage)
-  escodegen.traverse ast,
-    enter: (node) ->
-      if node.type in ['BlockStatement', 'Program']
-        node.body = node.body.filter (x, i) ->
-          !(x.type == 'EmptyStatement' && i-1 >= 0 && node.body[i-1].type in ['ReturnStatement', 'VariableDeclaration', 'ExpressionStatement'] && node.body[i-1].loc.end.line == x.loc.start.line)
-
-  # If-statements with literal tests should expand to their content (no semantic difference - JSCovergage, are you happy now?)
-  escodegen.traverse ast,
-    enter: (node) ->
-      if node.type in ['BlockStatement', 'Program']
-        node.body = _.flatten node.body.map (x, i) ->
-          if x.type == 'IfStatement' && x.test.type == 'Literal'
-            if x.test.value
-              x.consequent.body
-            else if x.alternate
-              x.alternate.body
-            else
-              []
-          else
-            x
+  jscoverageFormatting.formatTree(ast)
 
   # insert the coverage information
   escodegen.traverse ast,
@@ -182,6 +96,7 @@ exports.rewriteSource = (code, filename) ->
   trackedLines = _.sortBy(_.unique(injectList), _.identity)
   outcode = escodegen.generate(ast, { indent: "  " })
   writeFile(code, outcode, filename, trackedLines)
+
 
 
 exports.rewriteFolder = (source, target, options, callback) ->
