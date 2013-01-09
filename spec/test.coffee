@@ -3,7 +3,7 @@ should = require 'should'
 esprima = require 'esprima'
 wrench = require 'wrench'
 _ = require 'underscore'
-jscov = require('./coverage').require 'coverage'
+jscov = require('./coverage').require 'jscov'
 
 describe "rewriteSource", ->
 
