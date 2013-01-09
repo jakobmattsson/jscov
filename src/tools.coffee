@@ -18,7 +18,6 @@ reservedWords = [
 
 
 
-
 exports.evalBinaryExpression = do ->
   # Tempting to use eval here,
   # but I went with a more verbose solution
@@ -44,6 +43,7 @@ exports.replaceProperties = (obj, newProps) ->
 
   Object.getOwnPropertyNames(newProps).forEach (prop) ->
     obj[prop] = newProps[prop]
+
 
 
 # this regexp is not even correct. Identifiers can contain unicode characters.

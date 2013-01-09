@@ -37,6 +37,7 @@ exports.createLiteral = (value) ->
     value: value
 
 
+
 exports.isLiteral = (node) ->
   if node.type == 'Literal'
     true
@@ -69,12 +70,12 @@ exports.replaceNegativeInfinities = (ast) ->
     replacement: -> numberProperty('NEGATIVE_INFINITY')
 
 
+
 exports.replacePositiveInfinities = (ast) ->
   replaceAllNodes
     ast: ast
     predicate: nodeIsInfinity
     replacement: -> numberProperty('POSITIVE_INFINITY')
-
 
 
 
