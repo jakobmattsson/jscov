@@ -8,3 +8,25 @@ switch (list[1]) {
   default:
     console.log(list)
 }
+
+switch (2) {
+  case 2:
+    f();
+    break;
+    after();
+  case 3:
+    g();
+    break;
+    after();
+}
+
+switch ("2") {
+  case "2":
+    f();
+    break;
+    after();
+  case "3":
+    g();
+    break;
+    after();
+}

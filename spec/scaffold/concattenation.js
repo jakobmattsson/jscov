@@ -56,6 +56,9 @@ a = "hello" ? g() : f
 a = 1 ? (a+b) : f()
 a = true ? 67 : 92
 
+a = "" ? g() : f
+a = 0 ? (a+b) : f()
+a = false ? 67 : 92
 
 
 // Comma (strings, numbers, booleans)
