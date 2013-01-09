@@ -59,12 +59,16 @@ exports.formatTree = (ast) ->
   estools.replaceNegativeInfinities(ast)
   estools.replacePositiveInfinities(ast)
 
-  # Remove extra empty statements trailing returns without semicolons
+  # Remove empty statements trailing returns, declarations and expression without semicolons
   escodegen.traverse ast,
     enter: (node) ->
       if node.type in ['BlockStatement', 'Program']
         node.body = node.body.filter (x, i) ->
-          !(x.type == 'EmptyStatement' && i-1 >= 0 && node.body[i-1].type in ['ReturnStatement', 'VariableDeclaration', 'ExpressionStatement'] && node.body[i-1].loc.end.line == x.loc.start.line)
+          !(x.type == 'EmptyStatement' && i-1 >= 0 && node.body[i-1].type in [
+            'ReturnStatement'
+            'VariableDeclaration'
+            'ExpressionStatement'
+          ] && node.body[i-1].loc.end.line == x.loc.start.line)
 
   # If-statements with literal tests should expand to their content
   escodegen.traverse ast,

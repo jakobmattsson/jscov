@@ -1,5 +1,6 @@
 escodegen = require 'escodegen'
 tools = require './tools'
+_ = require 'underscore'
 estools = exports
 
 
@@ -96,3 +97,38 @@ exports.coverageNode = (node, filename, identifier) ->
           type: 'Identifier'
           name: identifier
         property: estools.createLiteral(filename)
+
+
+
+exports.addBeforeEveryStatement = (ast, addback) ->
+
+  # all optional blocks should be actual blocks (in order to make it possible to put coverage information in them)
+  escodegen.traverse ast,
+    enter: (node) ->
+      if node.type == 'IfStatement'
+        ['consequent', 'alternate'].forEach (path) ->
+          if node[path]? && node[path].type != 'BlockStatement'
+            node[path] =
+              type: 'BlockStatement'
+              body: [node[path]]
+      if node.type in ['ForInStatement', 'ForStatement', 'WhileStatement', 'WithStatement', 'DoWhileStatement'] && node.body? && node.body.type != 'BlockStatement'
+        node.body =
+          type: 'BlockStatement'
+          body: [node.body]
+
+  # insert the coverage information
+  escodegen.traverse ast,
+    enter: (node) ->
+      if node.type in ['BlockStatement', 'Program']
+        node.body = _.flatten node.body.map (statement) ->
+          if statement.expression?.type == 'FunctionExpression'
+            [addback(statement.expression), statement]
+          else if statement.expression?.type == 'CallExpression'
+            [addback(statement.expression), statement]
+          else if statement.type == 'FunctionDeclaration'
+            [addback(statement.body), statement]
+          else
+            [addback(statement), statement]
+      if node.type == 'SwitchCase'
+        node.consequent = _.flatten node.consequent.map (statement) ->
+          [addback(statement), statement]

@@ -11,10 +11,6 @@ jscoverageFormatting = require './jscoverage-formatting'
 
 
 
-coverageVar = '_$jscoverage'
-
-
-
 writeFile = do ->
   sourceMappings = [
     (x) -> x.replace(/&/g, '&amp;')
@@ -26,7 +22,7 @@ writeFile = do ->
     (x) -> '"' + x + '"'
   ]
 
-  (originalCode, coveredCode, filename, trackedLines) ->
+  (originalCode, coveredCode, filename, trackedLines, coverageVar) ->
 
     originalSource = originalCode.split(/\r?\n/g).map (line) -> sourceMappings.reduce(((src, f) -> f(src)), line)
     originalSource = originalSource.slice(0, -1) if _.last(originalSource) == '""'
@@ -48,52 +44,20 @@ writeFile = do ->
 
 exports.rewriteSource = (code, filename) ->
 
-  injectList = []
+  injectList = {}
+  coverageVar = '_$jscoverage'
 
   ast = esprima.parse(code, { loc: true })
 
   jscoverageFormatting.formatTree(ast)
 
-  # all optional blocks should be actual blocks (in order to make it possible to put coverage information in them)
-  escodegen.traverse ast,
-    enter: (node) ->
-      if node.type == 'IfStatement'
-        ['consequent', 'alternate'].forEach (src) ->
-          if node[src]? && node[src].type != 'BlockStatement'
-            node[src] =
-              type: 'BlockStatement'
-              body: [node[src]]
-      if node.type in ['ForInStatement', 'ForStatement', 'WhileStatement', 'WithStatement', 'DoWhileStatement'] && node.body? && node.body.type != 'BlockStatement'
-        node.body =
-          type: 'BlockStatement'
-          body: [node.body]
+  estools.addBeforeEveryStatement ast, (x) ->
+    injectList[x.loc.start.line] = 1
+    estools.coverageNode(x, filename, coverageVar)
 
-  # insert the coverage information
-  escodegen.traverse ast,
-    enter: (node) ->
-      if node.type in ['BlockStatement', 'Program']
-        node.body = _.flatten node.body.map (x) ->
-          if x.expression?.type == 'FunctionExpression'
-            injectList.push(x.expression.loc.start.line)
-            [estools.coverageNode(x.expression, filename, coverageVar), x]
-          else if x.expression?.type == 'CallExpression'
-            injectList.push(x.expression.loc.start.line)
-            [estools.coverageNode(x.expression, filename, coverageVar), x]
-          else if x.type == 'FunctionDeclaration'
-            injectList.push(x.body.loc.start.line)
-            [estools.coverageNode(x.body, filename, coverageVar), x]
-          else
-            injectList.push(x.loc.start.line)
-            [estools.coverageNode(x, filename, coverageVar), x]
-      if node.type == 'SwitchCase'
-        node.consequent = _.flatten node.consequent.map (x) ->
-          injectList.push(x.loc.start.line)
-          [estools.coverageNode(x, filename, coverageVar), x]
-
-  # wrap it up
-  trackedLines = _.sortBy(_.unique(injectList), _.identity)
+  trackedLines = _.sortBy(Object.keys(injectList).map((x) -> parseInt(x, 10)), _.identity)
   outcode = escodegen.generate(ast, { indent: "  " })
-  writeFile(code, outcode, filename, trackedLines)
+  writeFile(code, outcode, filename, trackedLines, coverageVar)
 
 
 
