@@ -23,65 +23,58 @@ exports.formatTree = (ast) ->
   }]
 
   # Ensure member expressions are on the correct format
-  escodegen.traverse ast,
-    enter: (node) ->
-      if node.type == 'MemberExpression'
-        if node.property.type == 'Literal' && tools.isValidIdentifier(node.property.value)
-          node.computed = false
-          node.property = { type: 'Identifier', name: node.property.value }
-        if node.property.type == 'Literal' && node.property.value?.toString().match(/^[1-9][0-9]*$/)
-          node.computed = true
-          node.property = estools.createLiteral(parseInt(node.property.value, 10))
-        if node.property.type == 'Identifier' && tools.isReservedWord(node.property.name)
-          node.computed = true
-          node.property = estools.createLiteral(node.property.name)
+  estools.traverse ast, ['MemberExpression'], (node) ->
+    if node.property.type == 'Literal' && tools.isValidIdentifier(node.property.value)
+      node.computed = false
+      node.property = { type: 'Identifier', name: node.property.value }
+    if node.property.type == 'Literal' && node.property.value?.toString().match(/^[1-9][0-9]*$/)
+      node.computed = true
+      node.property = estools.createLiteral(parseInt(node.property.value, 10))
+    if node.property.type == 'Identifier' && tools.isReservedWord(node.property.name)
+      node.computed = true
+      node.property = estools.createLiteral(node.property.name)
 
   # Preevaluate literal tests in loops and conditionals
-  escodegen.traverse ast,
-    enter: (node) ->
-      if ['test'].some((prop) -> node[prop]?.type == 'Literal')
-        if node.type == 'ConditionalExpression'
-          if typeof node.test.value == 'string' || typeof node.test.value == 'number' || typeof node.test.value == 'boolean'
-            if node.test.value
-              tools.replaceProperties(node, node.consequent)
-            else
-              tools.replaceProperties(node, node.alternate)
-        else if node.type == 'WhileStatement'
-          node.test.value = !!node.test.value
-        else if node.type == 'DoWhileStatement'
-          node.test.value = !!node.test.value
-        else if node.type == 'ForStatement'
+  estools.traverse ast, (node) ->
+    if node.test?.type == 'Literal'
+      if node.type == 'ConditionalExpression'
+        if typeof node.test.value == 'string' || typeof node.test.value == 'number' || typeof node.test.value == 'boolean'
           if node.test.value
-            node.test = null
+            tools.replaceProperties(node, node.consequent)
           else
-            node.test.value = false
+            tools.replaceProperties(node, node.alternate)
+      else if node.type == 'WhileStatement'
+        node.test.value = !!node.test.value
+      else if node.type == 'DoWhileStatement'
+        node.test.value = !!node.test.value
+      else if node.type == 'ForStatement'
+        if node.test.value
+          node.test = null
+        else
+          node.test.value = false
 
   # Replace infinities with named constants
   estools.replaceNegativeInfinities(ast)
   estools.replacePositiveInfinities(ast)
 
   # Remove empty statements trailing returns, declarations and expression without semicolons
-  escodegen.traverse ast,
-    enter: (node) ->
-      if node.type in ['BlockStatement', 'Program']
-        node.body = node.body.filter (x, i) ->
-          !(x.type == 'EmptyStatement' && i-1 >= 0 && node.body[i-1].type in [
-            'ReturnStatement'
-            'VariableDeclaration'
-            'ExpressionStatement'
-          ] && node.body[i-1].loc.end.line == x.loc.start.line)
+  estools.traverse ast, ['BlockStatement', 'Program'], (node) ->
+    node.body = node.body.filter (x, i) ->
+      !(x.type == 'EmptyStatement' && i-1 >= 0 && node.body[i-1].type in [
+        'ReturnStatement'
+        'VariableDeclaration'
+        'ExpressionStatement'
+      ] && node.body[i-1].loc.end.line == x.loc.start.line)
 
   # If-statements with literal tests should expand to their content
-  escodegen.traverse ast,
-    enter: (node) ->
-      if node.type in ['BlockStatement', 'Program']
-        node.body = _.flatten node.body.map (x, i) ->
-          if x.type == 'IfStatement' && x.test.type == 'Literal'
-            if x.test.value
-              x.consequent.body
-            else if x.alternate
-              x.alternate.body
-            else
-              []
-          else
-            x
+  estools.traverse ast, ['BlockStatement', 'Program'], (node) ->
+    node.body = _.flatten node.body.map (x, i) ->
+      if x.type == 'IfStatement' && x.test.type == 'Literal'
+        if x.test.value
+          x.consequent.body
+        else if x.alternate
+          x.alternate.body
+        else
+          []
+      else
+        x
