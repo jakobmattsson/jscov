@@ -44,6 +44,30 @@ describe "rewriteSource", ->
 
 
 
+  [{ enc: '', folder: 'encoding' }].forEach ({ enc, folder }) ->
+    wrench.readdirSyncRecursive('spec/' + folder).forEach (filename) ->
+
+      return if fs.lstatSync('spec/' + folder + '/' + filename).isDirectory() || !filename.match(/\.js$/)
+
+      it "should parse #{filename} the same way as jscoverage", ->
+        code = fs.readFileSync('spec/' + folder + '/' + filename, 'utf8')
+        newCode = jscov.rewriteSource(code, filename)
+        actualParse = esprima.parse(newCode)
+
+        expect = fs.readFileSync('spec/' + 'expect/' + folder + '/' + filename, 'utf8')
+        expectedParse = esprima.parse(expect)
+
+        if !_.isEqual(actualParse, expectedParse)
+          console.log "WRITING!123"
+          escodegen = require 'escodegen'
+          fs.writeFileSync('actual.js', escodegen.generate(actualParse, { indent: "  " }), 'utf8')
+          fs.writeFileSync('expected.js', escodegen.generate(expectedParse, { indent: "  " }), 'utf8')
+
+        _.isEqual(actualParse, expectedParse).should.be.true
+
+
+
+
   it "should throw an exception if the source is not valid", ->
     f = ->
       jscov.rewriteSource("console.log 'test'")
