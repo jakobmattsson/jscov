@@ -7,15 +7,40 @@ estools = require './estools'
 
 exports.formatTree = (ast) ->
 
+  # Preevaluate literal operators
+  estools.evalLiterals ast, [{
+    test: (node) -> node.type == 'UnaryExpression' && node.argument.type == 'Literal' && node.operator == '!'
+    eval: (node) -> !node.argument.value
+  }, {
+    test: (node) -> node.type == 'UnaryExpression' && node.argument.type == 'Literal' && node.operator == "~" && typeof node.argument.value == 'number'
+    eval: (node) -> ~node.argument.value
+  }, {
+    test: (node) -> node.type == 'BinaryExpression' && node.left.type == 'Literal' && node.right.type == 'Literal' && typeof node.left.value == 'string' && typeof node.right.value == 'string' && node.operator == '+'
+    eval: (node) -> node.left.value + node.right.value
+  }, {
+    test: (node) -> node.type == 'BinaryExpression' && estools.isNumericLiteral(node.left) && estools.isNumericLiteral(node.right) && node.operator in ['+', '-', '*', '%', '/', '<<', '>>', '>>>'] && typeof estools.evalLiteral(node.left) == 'number' && typeof estools.evalLiteral(node.right) == 'number'
+    eval: (node) -> tools.evalBinaryExpression(estools.evalLiteral(node.left), node.operator, estools.evalLiteral(node.right))
+  }]
+
+  # Ensure member expressions are on the correct format
   escodegen.traverse ast,
     enter: (node) ->
-      if ['property', 'argument', 'test'].some((prop) -> node[prop]?.type == 'Literal')
-        if node.type == 'MemberExpression' && node.computed && tools.isValidIdentifier(node.property.value)
+      if node.type == 'MemberExpression'
+        if node.property.type == 'Literal' && tools.isValidIdentifier(node.property.value)
           node.computed = false
           node.property = { type: 'Identifier', name: node.property.value }
-        else if node.type == 'MemberExpression' && node.computed && node.property.value?.toString().match(/^[1-9][0-9]*$/)
+        if node.property.type == 'Literal' && node.property.value?.toString().match(/^[1-9][0-9]*$/)
+          node.computed = true
           node.property = estools.createLiteral(parseInt(node.property.value, 10))
-        else if node.type == 'ConditionalExpression'
+        if node.property.type == 'Identifier' && tools.isReservedWord(node.property.name)
+          node.computed = true
+          node.property = estools.createLiteral(node.property.name)
+
+  # Preevaluate literal tests in loops and conditionals
+  escodegen.traverse ast,
+    enter: (node) ->
+      if ['test'].some((prop) -> node[prop]?.type == 'Literal')
+        if node.type == 'ConditionalExpression'
           if typeof node.test.value == 'string' || typeof node.test.value == 'number' || typeof node.test.value == 'boolean'
             if node.test.value
               tools.replaceProperties(node, node.consequent)
@@ -30,25 +55,6 @@ exports.formatTree = (ast) ->
             node.test = null
           else
             node.test.value = false
-      else
-        if node.type == 'MemberExpression' && !node.computed && node.property.type == 'Identifier' && tools.isReservedWord(node.property.name)
-          node.computed = true
-          node.property = estools.createLiteral(node.property.name)
-
-  # Evaluate literals
-  estools.evalLiterals ast, [{
-    test: (node) -> node.type == 'UnaryExpression' && node.argument.type == 'Literal' && node.operator == '!'
-    eval: (node) -> !node.argument.value
-  }, {
-    test: (node) -> node.type == 'UnaryExpression' && node.argument.type == 'Literal' && node.operator == "~" && typeof node.argument.value == 'number'
-    eval: (node) -> ~node.argument.value
-  }, {
-    test: (node) -> node.type == 'BinaryExpression' && node.left.type == 'Literal' && node.right.type == 'Literal' && typeof node.left.value == 'string' && typeof node.right.value == 'string' && node.operator == '+'
-    eval: (node) -> node.left.value + node.right.value
-  }, {
-    test: (node) -> node.type == 'BinaryExpression' && estools.isNumericLiteral(node.left) && estools.isNumericLiteral(node.right) && node.operator in ['+', '-', '*', '%', '/', '<<', '>>', '>>>'] && typeof estools.evalLiteral(node.left) == 'number' && typeof estools.evalLiteral(node.right) == 'number'
-    eval: (node) -> tools.evalBinaryExpression(estools.evalLiteral(node.left), node.operator, estools.evalLiteral(node.right))
-  }]
 
   # Replace infinities with named constants
   estools.replaceNegativeInfinities(ast)

@@ -20,8 +20,9 @@ replaceAllNodes = ({ ast, predicate, replacement }) ->
 
 
 
-nodeIsInfinity = (node) ->
-  node.type == 'Literal' && node.value == Infinity
+nodeIsInfinity = (node) -> node.type == 'Literal' && node.value == Infinity
+nodeIsNumericLiteral = (node) -> node.type == 'Literal' && typeof node.value == 'number'
+nodeIsUnaryMinus = (node) -> node.type == 'UnaryExpression' && node.operator == '-'
 
 
 
@@ -39,22 +40,17 @@ exports.createLiteral = (value) ->
 
 
 exports.isNumericLiteral = (node) ->
-  if node.type == 'Literal'
-    true
-  else if node.type == 'UnaryExpression' && node.operator == '-' && node.argument.type == 'Literal' && typeof node.argument.value == 'number'
-    true
-  else
-    false
+  nodeIsNumericLiteral(node) || (nodeIsUnaryMinus(node) && nodeIsNumericLiteral(node.argument))
 
 
 
 exports.evalLiteral = (node) ->
-  if node.type == 'Literal'
+  if nodeIsNumericLiteral(node)
     node.value
-  else if node.type == 'UnaryExpression' && node.operator == '-' && node.argument.type == 'Literal' && typeof node.argument.value == 'number'
+  else if nodeIsUnaryMinus(node) && nodeIsNumericLiteral(node.argument)
     -node.argument.value
   else
-    throw "not literal"
+    throw "not a numeric literal"
 
 
 
@@ -79,7 +75,7 @@ exports.replaceWithLiteral = (node, value) ->
 exports.replaceNegativeInfinities = (ast) ->
   replaceAllNodes
     ast: ast
-    predicate: (node) -> node.type == 'UnaryExpression' && node.operator == '-' && nodeIsInfinity(node.argument)
+    predicate: (node) -> nodeIsUnaryMinus(node) && nodeIsInfinity(node.argument)
     replacement: -> numberProperty('NEGATIVE_INFINITY')
 
 
