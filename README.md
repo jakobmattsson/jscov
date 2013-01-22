@@ -50,5 +50,14 @@ Running the tests requires jscoverage to be installed. This is because the main 
 ## Todo
 
 * Add some more test scaffolding, based on other peoples code in order to analyse coding styles other than my own.
-* Support different encodings (compare with JSCoverage on that as well)
 * Achieve 100% test-coverage
+* Refactor spec-folder. It's a mess right now!
+* Attempt to instrument code that has already been instrumented (seems like jscoverage prevents that)
+* Test precision of floats
+* Implement the following features from JSCoverage:
+  * encoding
+  * exclude
+  * js-version
+  * no-highlight
+  * no-instrument
+  * verbose
