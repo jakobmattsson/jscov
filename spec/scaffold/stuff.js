@@ -1,3 +1,9 @@
+// regexp
+reg = /\\$[0-9]^/
+
+
+
+// property lookup
 x["y"].f();
 x["with"].f();
 x["6"].f();

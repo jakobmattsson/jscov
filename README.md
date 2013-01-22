@@ -49,7 +49,6 @@ Running the tests requires jscoverage to be installed. This is because the main 
 
 ## Todo
 
-* Some characters in regexps appears to be improperly escaped, for example $. Investigate.
 * Add some more test scaffolding, based on other peoples code in order to analyse coding styles other than my own.
 * Support different encodings (compare with JSCoverage on that as well)
 * Achieve 100% test-coverage
