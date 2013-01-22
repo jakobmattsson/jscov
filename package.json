@@ -29,6 +29,6 @@
   "devDependencies": {
     "mocha-term-cov-reporter": "0.1.0",
     "should": "1.2.1",
-    "mocha": "1.7.4"
+    "mocha": "1.8.1"
   }
 }
