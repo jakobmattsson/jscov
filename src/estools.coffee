@@ -110,8 +110,6 @@ exports.traverse = (ast, filter, callback) ->
     callback = filter
     filter = []
 
-  filter ?= []
-
   escodegen.traverse ast,
     enter: (node) ->
       if filter.length == 0 || node.type in filter
