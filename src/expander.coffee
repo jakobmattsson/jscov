@@ -1,8 +1,12 @@
+# ToDo:
+# noop not as block-statement
+
+
+
 _ = require 'underscore'
 estools = require './estools'
 
-
-noopDef = {
+noopDef =
   kind: 'var'
   type: 'VariableDeclaration'
   declarations: [{
@@ -23,39 +27,51 @@ noopDef = {
     generator: false
     expression: false
   }]
-}
 
+noopExpression = 
+  type: 'ExpressionStatement'
+  expression:
+    arguments: []
+    type: 'CallExpression'
+    callee:
+      type: 'Identifier'
+      name: 'noop'
 
-# ToDo:
-# noop not as block-statement
+wrapExpression = (exp) ->
+  type: 'CallExpression'
+  arguments: []
+  callee: 
+    rest: null
+    generator: false
+    expression: false
+    type: 'FunctionExpression'
+    id: null
+    params: []
+    defaults: []
+    body: 
+      type: 'BlockStatement'
+      body: [{
+        type: 'ReturnStatement'
+        argument: exp
+      }]
 
 exports.expand = (ast) ->
 
-
   addNoop = false
 
-  estools.traverse ast, ['BlockStatement', 'Program'], (node) ->
-    node.body.forEach (x, i) ->
-      if x.type == 'IfStatement' && !x.alternate?
-        addNoop = true
-        x.alternate =
-          type: 'BlockStatement'
-          body: [{
-            type: 'ExpressionStatement'
-            expression:
-              arguments: []
-              type: 'CallExpression'
-              callee:
-                type: 'Identifier'
-                name: 'noop'
-          }]
+  estools.traverse ast, ['IfStatement'], (node) ->
+    if !node.alternate?
+      addNoop = true
+      node.alternate =
+        type: 'BlockStatement'
+        body: [noopExpression]
 
-
-
+  estools.traverse ast, ['ConditionalExpression'], (node) ->
+    ['consequent', 'alternate'].forEach (name) ->
+      node[name] = wrapExpression(node[name])
 
   if addNoop
     estools.traverse ast, ['Program'], (node) ->
       node.body = [noopDef].concat(node.body)
-
 
   ast

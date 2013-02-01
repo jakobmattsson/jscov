@@ -32,7 +32,7 @@ cases = [{
     var result = predicate ? x+y : pred2 ? f(g(1, 2, 3)) : v3;
   '''
   output: '''
-    var result = predicate ? (function() { return x+y; }()) : pred2 ? (function() { return f(g(1, 2, 3)); }()) : (function(){ return v3; }());
+    var result = predicate ? (function() { return x+y; }()) : (function() { return pred2 ? (function() { return f(g(1, 2, 3)); }()) : (function(){ return v3; }()) }());
   '''
 }, {
   name: 'ifelse'
