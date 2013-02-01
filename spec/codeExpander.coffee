@@ -14,9 +14,8 @@ cases = [{
     var __noop__ = function() { return null; };
     if (a) {
       f();
-    } else {
+    } else
       __noop__();
-    }
   '''
 }, {
   name: 'ternary'
@@ -24,7 +23,13 @@ cases = [{
     var result = predicate ? v1 : v2;
   '''
   output: '''
-    var result = predicate ? (function() { return v1; }()) : (function() { return v2; }());
+    var result = (function() {
+      if (predicate) {
+        return v1;
+      } else {
+        return v2;
+      }
+    }());
   '''
 }, {
   name: 'complex-ternary'
@@ -32,7 +37,19 @@ cases = [{
     var result = predicate ? x+y : pred2 ? f(g(1, 2, 3)) : v3;
   '''
   output: '''
-    var result = predicate ? (function() { return x+y; }()) : (function() { return pred2 ? (function() { return f(g(1, 2, 3)); }()) : (function(){ return v3; }()) }());
+    var result = (function() {
+      if (predicate) {
+        return x+y;
+      } else {
+        return (function() {
+          if (pred2) {
+            return f(g(1, 2, 3));
+          } else {
+            return v3;
+          }
+        }());
+      }
+    }());
   '''
 }, {
   name: 'ifelse'
@@ -65,9 +82,8 @@ cases = [{
       f();
     } else if (b) {
       g();
-    } else {
+    } else
       __noop__();
-    }
   '''
 }, {
   name: 'and-assign'
@@ -81,6 +97,34 @@ cases = [{
         return b();
       } else {
         return __lhs__;
+      }
+    }());
+  '''
+}, {
+  name: 'and-assign-constant'
+  input: '''
+    var x = 5 && b();
+  '''
+  output: '''
+    var x = (function() {
+      if (5) {
+        return b();
+      } else {
+        return 5;
+      }
+    }());
+  '''
+}, {
+  name: 'and-assign-literal'
+  input: '''
+    var x = variable && b();
+  '''
+  output: '''
+    var x = (function() {
+      if (variable) {
+        return b();
+      } else {
+        return variable;
       }
     }());
   '''
@@ -124,9 +168,8 @@ cases = [{
       }
     }())) {
       f();
-    } else {
+    } else
       __noop__();
-    }
   '''
 }]
 

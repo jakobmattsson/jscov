@@ -1,6 +1,5 @@
 # ToDo:
 # noop not as block-statement
-# noop must have a name that wont clash with anything
 # write a test for testing the actual code-coverage with and without using the expander
 
 
@@ -58,7 +57,7 @@ wrapExpression = (exp) ->
       }]
 
 
-wrapLogic = (isAnd, left, right, tmpvar) ->
+wrapPred = (test, left, right) ->
   type: 'CallExpression'
   arguments: []
   callee:
@@ -72,29 +71,36 @@ wrapLogic = (isAnd, left, right, tmpvar) ->
     body:
       type: 'BlockStatement'
       body: [{
-        kind: 'var'
-        type: 'VariableDeclaration'
-        declarations: [{
-          type: 'VariableDeclarator'
-          id: { type: 'Identifier', name: tmpvar }
-          init:  left
-        }]
-      }, {
         type: 'IfStatement'
-        test: { type: 'Identifier', name: tmpvar }
+        test: test
         consequent:
           type: 'BlockStatement'
           body: [{
             type: 'ReturnStatement'
-            argument: if isAnd then right else { type: 'Identifier', name: tmpvar }
+            argument: left
           }]
         alternate:
           type: 'BlockStatement'
           body: [{
             type: 'ReturnStatement'
-            argument: if !isAnd then right else { type: 'Identifier', name: tmpvar }
+            argument: right
           }]
       }]
+
+wrapLogic = (isAnd, left, right, tmpvar) ->
+  l = if  isAnd then right else { type: 'Identifier', name: tmpvar }
+  r = if !isAnd then right else { type: 'Identifier', name: tmpvar }
+  res = wrapPred({ type: 'Identifier', name: tmpvar }, l, r)
+  res.callee.body.body = [{
+    kind: 'var'
+    type: 'VariableDeclaration'
+    declarations: [{
+      type: 'VariableDeclarator'
+      id: { type: 'Identifier', name: tmpvar }
+      init:  left
+    }]
+  }].concat(res.callee.body.body)
+  res
 
 
 
@@ -105,20 +111,25 @@ exports.expand = (ast) ->
   estools.traverse ast, ['IfStatement'], (node) ->
     if !node.alternate?
       addNoop = true
-      node.alternate =
-        type: 'BlockStatement'
-        body: [noopExpression('__noop__')]
-
-  estools.traverse ast, ['ConditionalExpression'], (node) ->
-    ['consequent', 'alternate'].forEach (name) ->
-      node[name] = wrapExpression(node[name])
+      node.alternate = noopExpression('__noop__')
 
   estools.traverse ast, ['LogicalExpression'], (node) ->
     if node.operator == '&&' || node.operator == '||'
-      tools.replaceProperties(node, wrapLogic(node.operator == '&&', node.left, node.right, '__lhs__'))
+      if node.left.type == 'Literal' || node.left.type == 'Identifier'
+        tools.replaceProperties(node, wrapPred(node.left, node.right, node.left))
+      else
+        tools.replaceProperties(node, wrapLogic(node.operator == '&&', node.left, node.right, '__lhs__'))
+
       delete node.operator
       delete node.left
       delete node.right
+
+  estools.traverse ast, ['ConditionalExpression'], (node) ->
+    tools.replaceProperties(node, wrapPred(node.test, node.consequent, node.alternate))
+
+    delete node.test
+    delete node.consequent
+    delete node.alternate
 
   if addNoop
     estools.traverse ast, ['Program'], (node) ->
