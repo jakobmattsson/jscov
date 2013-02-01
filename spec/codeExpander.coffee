@@ -24,11 +24,10 @@ cases = [{
   '''
   output: '''
     var result = (function() {
-      if (predicate) {
+      if (predicate)
         return v1;
-      } else {
+      else
         return v2;
-      }
     }());
   '''
 }, {
@@ -38,17 +37,15 @@ cases = [{
   '''
   output: '''
     var result = (function() {
-      if (predicate) {
+      if (predicate)
         return x+y;
-      } else {
+      else
         return (function() {
-          if (pred2) {
+          if (pred2)
             return f(g(1, 2, 3));
-          } else {
+          else
             return v3;
-          }
         }());
-      }
     }());
   '''
 }, {
@@ -93,11 +90,10 @@ cases = [{
   output: '''
     var x = (function() {
       var __lhs__ = a();
-      if (__lhs__) {
+      if (__lhs__)
         return b();
-      } else {
+      else
         return __lhs__;
-      }
     }());
   '''
 }, {
@@ -107,11 +103,10 @@ cases = [{
   '''
   output: '''
     var x = (function() {
-      if (5) {
+      if (5)
         return b();
-      } else {
+      else
         return 5;
-      }
     }());
   '''
 }, {
@@ -121,11 +116,10 @@ cases = [{
   '''
   output: '''
     var x = (function() {
-      if (variable) {
+      if (variable)
         return b();
-      } else {
+      else
         return variable;
-      }
     }());
   '''
 }, {
@@ -136,11 +130,10 @@ cases = [{
   output: '''
     var x = (function() {
       var __lhs__ = a();
-      if (__lhs__) {
+      if (__lhs__)
         return __lhs__;
-      } else {
+      else
         return b();
-      }
     }());
   '''
 }, {
@@ -155,17 +148,15 @@ cases = [{
     if ((function() {
       var __lhs__ = (function() {
         var __lhs__ = a();
-        if (__lhs__) {
+        if (__lhs__)
           return __lhs__;
-        } else {
+        else
           return b();
-        }
       }());
-      if (__lhs__) {
+      if (__lhs__)
         return !c();
-      } else {
+      else
         return __lhs__;
-      }
     }())) {
       f();
     } else

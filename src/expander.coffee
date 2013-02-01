@@ -74,17 +74,11 @@ wrapPred = (test, left, right) ->
         type: 'IfStatement'
         test: test
         consequent:
-          type: 'BlockStatement'
-          body: [{
-            type: 'ReturnStatement'
-            argument: left
-          }]
+          type: 'ReturnStatement'
+          argument: left
         alternate:
-          type: 'BlockStatement'
-          body: [{
-            type: 'ReturnStatement'
-            argument: right
-          }]
+          type: 'ReturnStatement'
+          argument: right
       }]
 
 wrapLogic = (isAnd, left, right, tmpvar) ->
