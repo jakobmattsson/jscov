@@ -70,6 +70,36 @@ cases = [{
     }
   '''
 }, {
+  name: 'and-assign'
+  input: '''
+    var x = a() && b();
+  '''
+  output: '''
+    var x = (function() {
+      var __lhs = a();
+      if (__lhs) {
+        return b();
+      } else {
+        return __lhs;
+      }
+    }());
+  '''
+}, {
+  name: 'or-assign'
+  input: '''
+    var x = a() || b();
+  '''
+  output: '''
+    var x = (function() {
+      var __lhs = a();
+      if (__lhs) {
+        return __lhs;
+      } else {
+        return b();
+      }
+    }());
+  '''
+}, {
   name: 'and'
   input: '''
     if (a && b) {
