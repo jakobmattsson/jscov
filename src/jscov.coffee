@@ -7,6 +7,7 @@ wrench = require 'wrench'
 coffee = require 'coffee-script'
 tools = require './tools'
 estools = require './estools'
+expander = require './expander'
 jscoverageFormatting = require './jscoverage-formatting'
 
 
@@ -81,6 +82,7 @@ exports.rewriteFolder = (source, target, options, callback) ->
         data = null
 
       if data != null
+        data = expander.expand(data) if options.expand
         output = exports.rewriteSource(data, file)
         outfile = path.join(target, file).replace(/\.coffee$/, '.js')
         wrench.mkdirSyncRecursive(path.dirname(outfile))

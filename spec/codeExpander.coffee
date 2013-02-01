@@ -2,6 +2,7 @@ should = require 'should'
 escodegen = require 'escodegen'
 esprima = require 'esprima'
 expander = require('./coverage').require 'expander'
+jscov = require '../lib/jscov'
 
 cases = [{
   name: 'if'
@@ -185,3 +186,8 @@ it "should tranform strings too", (done) ->
   expectedCode = escodegen.generate(esprima.parse(data.output), { indent: "  " })
   expandedCode.should.eql expectedCode
   done()
+
+it "should work on all testfiles", (done) ->
+  jscov.rewriteFolder 'spec/scaffolding/scaffold', 'spec/.output/expanded', { expand: true }, (err) ->
+    should.not.exist err
+    done()
