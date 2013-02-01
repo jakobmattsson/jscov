@@ -6,6 +6,8 @@
 _ = require 'underscore'
 estools = require './estools'
 tools = require './tools'
+esprima = require 'esprima'
+escodegen = require 'escodegen'
 
 noopDef = (name) ->
   kind: 'var'
@@ -99,6 +101,8 @@ wrapLogic = (isAnd, left, right, tmpvar) ->
 
 
 exports.expand = (ast) ->
+
+  return escodegen.generate(exports.expand(esprima.parse(ast, { loc: false })), { indent: "  " }) if typeof ast == 'string'
 
   addNoop = false
 

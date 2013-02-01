@@ -174,3 +174,14 @@ cases.forEach (data) ->
     expectedCode = escodegen.generate(esprima.parse(data.output), { indent: "  " })
     expandedCode.should.eql expectedCode
     done()
+
+
+
+it "should tranform strings too", (done) ->
+  data = cases[0]
+  output = expander.expand(data.input)
+  output.should.be.a.string
+  expandedCode = escodegen.generate(esprima.parse(output), { indent: "  " })
+  expectedCode = escodegen.generate(esprima.parse(data.output), { indent: "  " })
+  expandedCode.should.eql expectedCode
+  done()
