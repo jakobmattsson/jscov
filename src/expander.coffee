@@ -8,12 +8,12 @@ _ = require 'underscore'
 estools = require './estools'
 tools = require './tools'
 
-noopDef =
+noopDef = (name) ->
   kind: 'var'
   type: 'VariableDeclaration'
   declarations: [{
     type: 'VariableDeclarator'
-    id: { type: 'Identifier', name: 'noop' }
+    id: { type: 'Identifier', name: name }
     init:
       type: 'FunctionExpression'
       id: null
@@ -30,14 +30,14 @@ noopDef =
     expression: false
   }]
 
-noopExpression = 
+noopExpression = (name) ->
   type: 'ExpressionStatement'
   expression:
     arguments: []
     type: 'CallExpression'
     callee:
       type: 'Identifier'
-      name: 'noop'
+      name: name
 
 wrapExpression = (exp) ->
   type: 'CallExpression'
@@ -58,7 +58,7 @@ wrapExpression = (exp) ->
       }]
 
 
-wrapLogic = (isAnd, left, right) ->
+wrapLogic = (isAnd, left, right, tmpvar) ->
   type: 'CallExpression'
   arguments: []
   callee:
@@ -76,23 +76,23 @@ wrapLogic = (isAnd, left, right) ->
         type: 'VariableDeclaration'
         declarations: [{
           type: 'VariableDeclarator'
-          id: { type: 'Identifier', name: '__lhs' }
+          id: { type: 'Identifier', name: tmpvar }
           init:  left
         }]
       }, {
         type: 'IfStatement'
-        test: { type: 'Identifier', name: '__lhs' }
+        test: { type: 'Identifier', name: tmpvar }
         consequent:
           type: 'BlockStatement'
           body: [{
             type: 'ReturnStatement'
-            argument: if isAnd then right else { type: 'Identifier', name: '__lhs' }
+            argument: if isAnd then right else { type: 'Identifier', name: tmpvar }
           }]
         alternate:
           type: 'BlockStatement'
           body: [{
             type: 'ReturnStatement'
-            argument: if !isAnd then right else { type: 'Identifier', name: '__lhs' }
+            argument: if !isAnd then right else { type: 'Identifier', name: tmpvar }
           }]
       }]
 
@@ -107,7 +107,7 @@ exports.expand = (ast) ->
       addNoop = true
       node.alternate =
         type: 'BlockStatement'
-        body: [noopExpression]
+        body: [noopExpression('__noop__')]
 
   estools.traverse ast, ['ConditionalExpression'], (node) ->
     ['consequent', 'alternate'].forEach (name) ->
@@ -115,13 +115,13 @@ exports.expand = (ast) ->
 
   estools.traverse ast, ['LogicalExpression'], (node) ->
     if node.operator == '&&' || node.operator == '||'
-      tools.replaceProperties(node, wrapLogic(node.operator == '&&', node.left, node.right))
+      tools.replaceProperties(node, wrapLogic(node.operator == '&&', node.left, node.right, '__lhs__'))
       delete node.operator
       delete node.left
       delete node.right
 
   if addNoop
     estools.traverse ast, ['Program'], (node) ->
-      node.body = [noopDef].concat(node.body)
+      node.body = [noopDef('__noop__')].concat(node.body)
 
   ast

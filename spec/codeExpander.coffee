@@ -11,11 +11,11 @@ cases = [{
     }
   '''
   output: '''
-    var noop = function() { return null; };
+    var __noop__ = function() { return null; };
     if (a) {
       f();
     } else {
-      noop();
+      __noop__();
     }
   '''
 }, {
@@ -60,13 +60,13 @@ cases = [{
     }
   '''
   output: '''
-    var noop = function() { return null; };
+    var __noop__ = function() { return null; };
     if (a) {
       f();
     } else if (b) {
       g();
     } else {
-      noop();
+      __noop__();
     }
   '''
 }, {
@@ -76,11 +76,11 @@ cases = [{
   '''
   output: '''
     var x = (function() {
-      var __lhs = a();
-      if (__lhs) {
+      var __lhs__ = a();
+      if (__lhs__) {
         return b();
       } else {
-        return __lhs;
+        return __lhs__;
       }
     }());
   '''
@@ -91,95 +91,13 @@ cases = [{
   '''
   output: '''
     var x = (function() {
-      var __lhs = a();
-      if (__lhs) {
-        return __lhs;
+      var __lhs__ = a();
+      if (__lhs__) {
+        return __lhs__;
       } else {
         return b();
       }
     }());
-  '''
-}, {
-  name: 'and'
-  input: '''
-    if (a && b) {
-      f();
-    }
-  '''
-  output: '''
-    var noop = function() { return null; };
-    if (a) {
-      if (b) {
-        f();
-      } else {
-        noop();
-      }
-    } else {
-      noop();
-    }
-  '''
-}, {
-  name: 'or'
-  input: '''
-    if (a || b) {
-      f();
-    }
-  '''
-  output: '''
-    var noop = function() { return null; };
-    if (a) {
-      f();
-    } else if (b) {
-      f();
-    } else {
-      noop();
-    }
-  '''
-}, {
-  name: 'andor'
-  input: '''
-    if (a || b && c) {
-      f();
-    }
-  '''
-  output: '''
-    var noop = function() { return null; };
-    if (a) {
-      f();
-    } else if (b) {
-      if (c) {
-        f();
-      } else {
-        noop();
-      }
-    } else {
-      noop();
-    }
-  '''
-}, {
-  name: 'andor-parenthesis'
-  input: '''
-    if ((a || b) && c) {
-      f();
-    }
-  '''
-  output: '''
-    var noop = function() { return null; };
-    if (a) {
-      if (c) {
-        f();
-      } else {
-        noop();
-      }
-    } else if (b) {
-      if (c) {
-        f();
-      } else {
-        noop();
-      }
-    } else {
-      noop();
-    }
   '''
 }, {
   name: 'andor-complex'
@@ -189,21 +107,25 @@ cases = [{
     }
   '''
   output: '''
-    var noop = function() { return null; };
-    if (a()) {
-      if (!c()) {
-        f();
+    var __noop__ = function() { return null; };
+    if ((function() {
+      var __lhs__ = (function() {
+        var __lhs__ = a();
+        if (__lhs__) {
+          return __lhs__;
+        } else {
+          return b();
+        }
+      }());
+      if (__lhs__) {
+        return !c();
       } else {
-        noop();
+        return __lhs__;
       }
-    } else if (b()) {
-      if (!c()) {
-        f();
-      } else {
-        noop();
-      }
+    }())) {
+      f();
     } else {
-      noop();
+      __noop__();
     }
   '''
 }]
