@@ -61,3 +61,4 @@ Running the tests requires jscoverage to be installed. This is because the main 
   * no-highlight
   * no-instrument
   * verbose
+* codeExpander should be tested to confirm that the program before and after does the exact same thing (could the AST's be reduced or should test programs be run?)
