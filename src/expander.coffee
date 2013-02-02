@@ -114,7 +114,10 @@ exports.expand = (ast) ->
   estools.traverse ast, ['LogicalExpression'], (node) ->
     if node.operator == '&&' || node.operator == '||'
       if node.left.type == 'Literal' || node.left.type == 'Identifier'
-        tools.replaceProperties(node, wrapPred(node.left, node.right, node.left))
+        if node.operator == '&&'
+          tools.replaceProperties(node, wrapPred(node.left, node.right, node.left))
+        else
+          tools.replaceProperties(node, wrapPred(node.left, node.left, node.right))
       else
         tools.replaceProperties(node, wrapLogic(node.operator == '&&', node.left, node.right, '__lhs__'))
 

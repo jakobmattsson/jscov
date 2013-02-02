@@ -124,6 +124,32 @@ cases = [{
     }());
   '''
 }, {
+  name: 'or-assign-constant'
+  input: '''
+    var x = 5 || b();
+  '''
+  output: '''
+    var x = (function() {
+      if (5)
+        return 5;
+      else
+        return b();
+    }());
+  '''
+}, {
+  name: 'or-assign-literal'
+  input: '''
+    var x = variable || b();
+  '''
+  output: '''
+    var x = (function() {
+      if (variable)
+        return variable;
+      else
+        return b();
+    }());
+  '''
+}, {
   name: 'or-assign'
   input: '''
     var x = a() || b();
