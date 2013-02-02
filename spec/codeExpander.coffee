@@ -187,6 +187,8 @@ it "should tranform strings too", (done) ->
   expandedCode.should.eql expectedCode
   done()
 
+
+
 it "should work on all testfiles", (done) ->
   jscov.rewriteFolder 'spec/scaffolding/scaffold', 'spec/.output/expanded', { expand: true }, (err) ->
     should.not.exist err

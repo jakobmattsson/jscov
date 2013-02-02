@@ -71,9 +71,9 @@ exports.formatTree = (ast) ->
     node.body = _.flatten node.body.map (x, i) ->
       if x.type == 'IfStatement' && x.test.type == 'Literal'
         if x.test.value
-          x.consequent.body
+          if x.consequent.type == 'BlockStatement' then x.consequent.body else _.extend({}, x.consequent, { loc: x.loc })
         else if x.alternate
-          x.alternate.body
+          if x.alternate.type == 'BlockStatement' then x.alternate.body else _.extend({}, x.alternate, { loc: x.loc })
         else
           []
       else
