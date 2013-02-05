@@ -59,7 +59,20 @@ exports.evalLiterals = (ast, evals) ->
     exports.traverse ast, (node) ->
       evals.forEach (n) ->
         if n.test(node)
-          exports.replaceWithLiteral(node, n.eval(node))
+          v = n.eval(node)
+          if typeof v == 'number' && isNaN(v)
+            tools.replaceProperties(node, {
+              type: 'MemberExpression'
+              computed: false
+              object:
+                type: 'Identifier'
+                name: 'Number'
+              property:
+                type: 'Identifier'
+                name: 'NaN'
+            })
+          else
+            exports.replaceWithLiteral(node, v)
           format = true
 
 

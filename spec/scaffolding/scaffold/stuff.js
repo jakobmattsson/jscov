@@ -3,6 +3,11 @@ reg = /\\$[0-9]^/
 
 
 
+// Computed NaN-literals
+var x = 0 / 0;
+
+
+
 // property lookup
 x["y"].f();
 x["with"].f();
