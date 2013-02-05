@@ -13,6 +13,7 @@ describe "rewriteSource", ->
     { folder: 'scaffold' }
     { folder: 'oss' }
     { folder: 'js-v1.8', jsversion: '1.8' }
+    { folder: 'js-v1.6', jsversion: '1.6' }
   ].forEach ({ folder }) ->
     return if process.env.NOOSS? && folder == 'oss'
 
