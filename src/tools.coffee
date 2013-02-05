@@ -12,7 +12,7 @@ reservedWords = [
   'final',        'float',        'goto',         'implements',   'int'
   'interface',    'long',         'native',       'package',      'private'
   'protected',    'public',       'short',        'static',       'synchronized'
-  'throws',       'transient'
+  'throws',       'transient',    'export'
 ]
 
 
