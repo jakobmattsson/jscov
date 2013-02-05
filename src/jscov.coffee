@@ -63,6 +63,8 @@ exports.rewriteSource = (code, filename) ->
 
 
 exports.rewriteFolder = (source, target, options, callback) ->
+  errors = []
+
   try
     if !callback?
       callback = options
@@ -77,13 +79,23 @@ exports.rewriteFolder = (source, target, options, callback) ->
       data = fs.readFileSync(fullpath, 'utf8')
 
       if file.match(/\.coffee$/)
-        data = coffee.compile(data)
+        try
+          data = coffee.compile(data)
+        catch ex
+          errors.push({ file: file, ex: ex })
+          return
       else if !file.match(/\.js$/)
         data = null
 
       if data != null
         data = expander.expand(data) if options.expand
-        output = exports.rewriteSource(data, file)
+
+        try
+          output = exports.rewriteSource(data, file)
+        catch ex
+          errors.push({ file: file, ex: ex })
+          return
+
         outfile = path.join(target, file).replace(/\.coffee$/, '.js')
         wrench.mkdirSyncRecursive(path.dirname(outfile))
         fs.writeFileSync(outfile, output, 'utf8')
@@ -92,7 +104,11 @@ exports.rewriteFolder = (source, target, options, callback) ->
     callback(ex)
     return
 
-  callback(null)
+  if errors.length > 0
+    failures = errors.map((x) -> x.file + ": " + (x.ex.message || 'UNKNOWN')).join('\n')
+    callback(new Error(failures))
+  else
+    callback()
 
 
 

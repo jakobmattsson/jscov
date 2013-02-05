@@ -102,6 +102,17 @@ describe "rewriteFolder", ->
         done()
 
 
+  it "should report on invalid files, skip them, and process the remaining", (done) ->
+    outdir = output + '/fail-out'
+    wrench.mkdirSyncRecursive(outdir)
+    jscov.rewriteFolder 'spec/scaffolding/fail', outdir, (err) ->
+      fs.exists "#{outdir}/valid.js", (exists) ->
+        exists.should.be.true
+        err.should.be.a 'object'
+        err.message.should.eql 'fail.coffee: missing ) on line 1\nfail.js: Line 2: Unexpected end of input'
+        done()
+
+
   it "should overwrite the target directory and remove/replace all files in it", (done) ->
 
     wrench.mkdirSyncRecursive(output + '/existing/subdir')
