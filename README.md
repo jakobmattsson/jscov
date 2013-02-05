@@ -62,3 +62,5 @@ Running the tests requires jscoverage to be installed. This is because the main 
   * no-instrument
   * verbose
 * codeExpander should be tested to confirm that the program before and after does the exact same thing (could the AST's be reduced or should test programs be run?)
+* Look into the parse parameters "source" and "tokens"; might be helpful for simplying keeping source code and solivng the octal bug
+* Make jscoverage and jscov run with the same default parameters (for example encoding and js-version)
