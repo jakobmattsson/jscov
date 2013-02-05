@@ -9,7 +9,10 @@ output = "spec/.output"
 
 describe "rewriteSource", ->
 
-  ['scaffold', 'oss'].forEach (folder) ->
+  [
+    { folder: 'scaffold' }
+    { folder: 'oss' }
+  ].forEach ({ folder }) ->
     return if process.env.NOOSS? && folder == 'oss'
 
     wrench.readdirSyncRecursive('spec/scaffolding/' + folder).forEach (filename) ->
