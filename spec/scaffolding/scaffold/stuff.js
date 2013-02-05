@@ -84,6 +84,10 @@ function fake_trailing_semicolon() {
 }(1));
 
 
+// Octal-looking decimal constants
+o = 018
+
+
 // Semicolon trailing after variable declaration
 var dirname = 10
 ;

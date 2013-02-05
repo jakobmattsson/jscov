@@ -48,7 +48,7 @@ exports.rewriteSource = (code, filename) ->
   injectList = {}
   coverageVar = '_$jscoverage'
 
-  ast = esprima.parse(code, { loc: true })
+  ast = esprima.parse(code, { loc: true }) # this parser cant handle constants like: 018
 
   jscoverageFormatting.formatTree(ast)
 
