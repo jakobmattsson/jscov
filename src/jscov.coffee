@@ -56,6 +56,8 @@ exports.rewriteSource = (code, filename) ->
     injectList[node.loc.start.line] = 1
     estools.coverageNode(node, filename, coverageVar)
 
+  jscoverageFormatting.postFormatTree(ast)
+
   trackedLines = _.sortBy(Object.keys(injectList).map((x) -> parseInt(x, 10)), _.identity)
   outcode = escodegen.generate(ast, { indent: "  " })
   writeFile(code, outcode, filename, trackedLines, coverageVar)

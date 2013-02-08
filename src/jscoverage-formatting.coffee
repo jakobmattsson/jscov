@@ -78,3 +78,25 @@ exports.formatTree = (ast) ->
           []
       else
         x
+
+  # Rewrite all "let"-statements found in global scope and function scope to "var"-statements (if js 1.8)
+  estools.traverse ast, ['FunctionExpression', 'FunctionDeclaration', 'Program'], (node) ->
+    body = if node.type == 'Program' then node.body else node.body.body
+    body.filter((x) -> x.type == 'VariableDeclaration' && x.kind == 'let').forEach (stm) ->
+      stm.kind = 'var'
+
+
+exports.postFormatTree = (ast) ->
+
+  # Wrap all blocks containing "let"-declarations in yet another outer block
+  stored = []
+  estools.traverse ast, ['BlockStatement'], (node) ->
+    if node.body.some((stm) -> stm.type == 'VariableDeclaration' && stm.kind == 'let')
+      stored.push(node)
+
+  stored.forEach (node) ->
+    node.body = [{
+      type: 'BlockStatement'
+      body: node.body
+      loc: node.loc
+    }]
