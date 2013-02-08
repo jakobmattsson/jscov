@@ -1,8 +1,3 @@
-# ToDo:
-# noop not as block-statement
-# write a test for testing the actual code-coverage with and without using the expander
-
-
 _ = require 'underscore'
 estools = require './estools'
 tools = require './tools'
