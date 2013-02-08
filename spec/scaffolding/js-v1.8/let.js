@@ -13,6 +13,14 @@ let x = 1;
     let a = 20;
     console.log(a);
   }
-  
+
   console.log(y);
-});
+}());
+
+function test() {
+  let a = 1;
+  let b = 2;
+  while (a > b) {
+    var c = a + b;
+  }
+}
