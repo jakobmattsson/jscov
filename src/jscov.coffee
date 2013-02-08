@@ -96,7 +96,7 @@ exports.rewriteFolder = (source, target, options, callback) ->
     return
 
   if errors.length > 0
-    failures = errors.map((x) -> x.file + ": " + (x.ex.message || 'UNKNOWN')).join('\n')
+    failures = _.sortBy(errors, (x) -> x.file).map((x) -> x.file + ": " + (x.ex.message || 'UNKNOWN')).join('\n')
     callback(new Error(failures))
   else
     callback()
