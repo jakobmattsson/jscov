@@ -40,25 +40,6 @@ noopExpression = (name) ->
       type: 'Identifier'
       name: name
 
-wrapExpression = (exp) ->
-  type: 'CallExpression'
-  arguments: []
-  callee: 
-    rest: null
-    generator: false
-    expression: false
-    type: 'FunctionExpression'
-    id: null
-    params: []
-    defaults: []
-    body: 
-      type: 'BlockStatement'
-      body: [{
-        type: 'ReturnStatement'
-        argument: exp
-      }]
-
-
 wrapPred = (test, left, right) ->
   type: 'CallExpression'
   arguments: []

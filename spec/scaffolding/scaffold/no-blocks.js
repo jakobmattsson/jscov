@@ -8,5 +8,10 @@ b = function () {
     }();
   else
     return 1;
+
+  if (0)
+    return 'b';
+  else
+    return 'a';
 }();
 console.log(b)

@@ -49,11 +49,12 @@ Running the tests requires jscoverage to be installed. This is because the main 
 
 ## Todo
 
-* Add some more test scaffolding, based on other peoples code in order to analyse coding styles other than my own.
-* Achieve 100% test-coverage
-* Refactor spec-folder. It's a mess right now!
 * Attempt to instrument code that has already been instrumented (seems like jscoverage prevents that)
-* Test precision of floats
+* Branches current attempting to solve:
+  * Float precision
+  * Encodings
+  * Octal-looking decimals
+  * JS v1.6
 * Implement the following features from JSCoverage:
   * encoding
   * exclude

@@ -125,7 +125,7 @@ exports.traverse = (ast, filter, callback) ->
 
   escodegen.traverse ast,
     enter: (node) ->
-      if filter.length == 0 || node.type in filter
+      if filter.length == 0 || filter.indexOf(node.type) != -1
         callback(node)
 
 
@@ -140,14 +140,14 @@ exports.addBeforeEveryStatement = (ast, addback) ->
           node[path] =
             type: 'BlockStatement'
             body: [node[path]]
-    if node.type in ['ForInStatement', 'ForStatement', 'WhileStatement', 'WithStatement', 'DoWhileStatement'] && node.body? && node.body.type != 'BlockStatement'
+    if ['ForInStatement', 'ForStatement', 'WhileStatement', 'WithStatement', 'DoWhileStatement'].indexOf(node.type) != -1 && node.body? && node.body.type != 'BlockStatement'
       node.body =
         type: 'BlockStatement'
         body: [node.body]
 
   # insert the coverage information
   exports.traverse ast, (node) ->
-    if node.type in ['BlockStatement', 'Program']
+    if ['BlockStatement', 'Program'].indexOf(node.type) != -1
       node.body = _.flatten node.body.map (statement) ->
         if statement.expression?.type == 'FunctionExpression'
           [addback(statement.expression), statement]

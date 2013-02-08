@@ -63,6 +63,16 @@ exports.rewriteSource = (code, filename) ->
   writeFile(code, outcode, filename, trackedLines, coverageVar)
 
 
+exports.rewriteFile = (sourceFileBase, sourceFile, targetDir, options) ->
+  data = fs.readFileSync(path.join(sourceFileBase, sourceFile), 'utf8')
+  data = coffee.compile(data) if sourceFile.match(/\.coffee$/)
+  data = expander.expand(data) if options.expand
+  output = exports.rewriteSource(data, sourceFile)
+  outfile = path.join(targetDir, sourceFile).replace(/\.coffee$/, '.js')
+  wrench.mkdirSyncRecursive(path.dirname(outfile))
+  fs.writeFileSync(outfile, output, 'utf8')
+
+
 
 exports.rewriteFolder = (source, target, options, callback) ->
   errors = []
@@ -75,32 +85,11 @@ exports.rewriteFolder = (source, target, options, callback) ->
     wrench.rmdirSyncRecursive(target, true)
 
     wrench.readdirSyncRecursive(source).forEach (file) ->
-      fullpath = path.join(source, file)
-      return if fs.lstatSync(fullpath).isDirectory()
-
-      data = fs.readFileSync(fullpath, 'utf8')
-
-      if file.match(/\.coffee$/)
-        try
-          data = coffee.compile(data)
-        catch ex
-          errors.push({ file: file, ex: ex })
-          return
-      else if !file.match(/\.js$/)
-        data = null
-
-      if data != null
-        data = expander.expand(data) if options.expand
-
-        try
-          output = exports.rewriteSource(data, file)
-        catch ex
-          errors.push({ file: file, ex: ex })
-          return
-
-        outfile = path.join(target, file).replace(/\.coffee$/, '.js')
-        wrench.mkdirSyncRecursive(path.dirname(outfile))
-        fs.writeFileSync(outfile, output, 'utf8')
+      return if fs.lstatSync(path.join(source, file)).isDirectory() || !file.match(/\.(coffee|js)$/)
+      try
+        exports.rewriteFile(source, file, target, options)
+      catch ex
+        errors.push({ file: file, ex: ex })
 
   catch ex
     callback(ex)
