@@ -31,7 +31,7 @@ if (argv._.length != 2) {
 }
 
 jscov.rewriteFolder(argv._[0], argv._[1], {
-  expand: argv.expand
+  expand: argv.expand,
   conditionals: argv.conditionals
 }, function(err) {
   if (err) {
