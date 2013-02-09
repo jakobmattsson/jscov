@@ -2,7 +2,7 @@ should = require 'should'
 escodegen = require 'escodegen'
 esprima = require 'esprima'
 expander = require('./coverage').require 'expander'
-jscov = require '../lib/jscov'
+jscov = require('./coverage').require 'jscov'
 
 cases = [{
   name: 'if'

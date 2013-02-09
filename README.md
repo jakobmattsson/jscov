@@ -49,6 +49,7 @@ Running the tests requires jscoverage to be installed. This is because the main 
 
 ## Todo
 
+* Test using empty blocks in some different contexts. Are they removed?
 * Write a test for testing the actual code-coverage with and without using the expander
 * Attempt to instrument code that has already been instrumented (seems like jscoverage prevents that)
 * Branches current attempting to solve:

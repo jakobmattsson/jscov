@@ -7,6 +7,7 @@ wrench = require 'wrench'
 coffee = require 'coffee-script'
 tools = require './tools'
 estools = require './estools'
+conditionals = require './conditionals'
 expander = require './expander'
 jscoverageFormatting = require './jscoverage-formatting'
 
@@ -65,6 +66,7 @@ exports.rewriteSource = (code, filename) ->
 
 exports.rewriteFile = (sourceFileBase, sourceFile, targetDir, options) ->
   data = fs.readFileSync(path.join(sourceFileBase, sourceFile), 'utf8')
+  data = conditionals.expand(data, { lang: (if sourceFile.match(/\.coffee$/) then 'coffee' else 'js') }) if options.conditionals
   data = coffee.compile(data) if sourceFile.match(/\.coffee$/)
   data = expander.expand(data) if options.expand
   output = exports.rewriteSource(data, sourceFile)
