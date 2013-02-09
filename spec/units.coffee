@@ -3,12 +3,17 @@ should = require 'should'
 jscov = require('./coverage').require 'jscov'
 tools = require('./coverage').require 'tools'
 estools = require('./coverage').require 'estools'
+ftools = require('./coverage').require 'jscoverage-formatting-tools'
+jscovFormat = require('./coverage').require 'jscoverage-formatting'
 
 
 
 describe "evalBinaryExpression", ->
+  it "should evaluate binary operators using evalBinaryExpression as expected", ->
+    ftools.evalBinaryExpression(1, '+', 2).should.eql 3
+
   it "should throw an exception if given an invalid operator", ->
-    f = -> tools.evalBinaryExpression(1, '%%', 2)
+    f = -> ftools.evalBinaryExpression(1, '%%', 2)
     f.should.throw()
 
 
@@ -40,5 +45,8 @@ describe "jscov", ->
 
 describe "estools", ->
   it "should throw an exception if 'evalLiteral' is called for a non-literal", ->
-    f = -> estools.evalLiteral({ foo: 'bar' })
+    f = -> ftools.evalLiteral({ foo: 'bar' })
     f.should.throw()
+
+  it "should throw an exception if 'evalLiteral' is called for a non-literal", ->
+    ftools.evalLiteral({ type: 'Literal', value: 5 }).should.eql 5

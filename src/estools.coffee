@@ -4,26 +4,6 @@ _ = require 'underscore'
 
 
 
-numberProperty = (property) ->
-  type: 'MemberExpression'
-  computed: false
-  object: { type: 'Identifier', name: 'Number' }
-  property: { type: 'Identifier', name: property }
-
-
-
-replaceAllNodes = ({ ast, predicate, replacement }) ->
-  exports.traverse ast, (node) ->
-    tools.replaceProperties(node, replacement(node)) if predicate(node)
-
-
-
-nodeIsInfinity = (node) -> node.type == 'Literal' && node.value == Infinity
-nodeIsNumericLiteral = (node) -> node.type == 'Literal' && typeof node.value == 'number'
-nodeIsUnaryMinus = (node) -> node.type == 'UnaryExpression' && node.operator == '-'
-
-
-
 exports.createLiteral = (value) ->
   if typeof value == 'number' && value < 0
     type: 'UnaryExpression'
@@ -37,64 +17,11 @@ exports.createLiteral = (value) ->
 
 
 
-exports.isNumericLiteral = (node) ->
-  nodeIsNumericLiteral(node) || (nodeIsUnaryMinus(node) && nodeIsNumericLiteral(node.argument))
-
-
-
-exports.evalLiteral = (node) ->
-  if nodeIsNumericLiteral(node)
-    node.value
-  else if nodeIsUnaryMinus(node) && nodeIsNumericLiteral(node.argument)
-    -node.argument.value
-  else
-    throw "not a numeric literal"
-
-
-
-exports.evalLiterals = (ast, evals) ->
-  format = true
-  while format
-    format = false
-    exports.traverse ast, (node) ->
-      evals.forEach (n) ->
-        if n.test(node)
-          v = n.eval(node)
-          if typeof v == 'number' && isNaN(v)
-            tools.replaceProperties(node, {
-              type: 'MemberExpression'
-              computed: false
-              object:
-                type: 'Identifier'
-                name: 'Number'
-              property:
-                type: 'Identifier'
-                name: 'NaN'
-            })
-          else
-            exports.replaceWithLiteral(node, v)
-          format = true
-
-
-
-exports.replaceWithLiteral = (node, value) ->
-  tools.replaceProperties(node, exports.createLiteral(value))
-
-
-
-exports.replaceNegativeInfinities = (ast) ->
-  replaceAllNodes
-    ast: ast
-    predicate: (node) -> nodeIsUnaryMinus(node) && nodeIsInfinity(node.argument)
-    replacement: -> numberProperty('NEGATIVE_INFINITY')
-
-
-
-exports.replacePositiveInfinities = (ast) ->
-  replaceAllNodes
-    ast: ast
-    predicate: nodeIsInfinity
-    replacement: -> numberProperty('POSITIVE_INFINITY')
+computedMember = ({ property, object }) ->
+  type: 'MemberExpression'
+  computed: true
+  property: property
+  object: object
 
 
 
@@ -104,17 +31,11 @@ exports.coverageNode = (node, filename, identifier) ->
     type: 'UpdateExpression'
     operator: '++'
     prefix: false
-    argument:
-      type: 'MemberExpression'
-      computed: true
+    argument: computedMember
       property: exports.createLiteral(node.loc.start.line)
-      object:
-        type: 'MemberExpression'
-        computed: true
-        object:
-          type: 'Identifier'
-          name: identifier
+      object: computedMember
         property: exports.createLiteral(filename)
+        object: { type: 'Identifier', name: identifier }
 
 
 

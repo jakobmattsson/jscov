@@ -2,13 +2,14 @@ _ = require 'underscore'
 escodegen = require 'escodegen'
 tools = require './tools'
 estools = require './estools'
+ftools = require './jscoverage-formatting-tools'
 
 
 
 exports.formatTree = (ast) ->
 
   # Preevaluate literal operators
-  estools.evalLiterals ast, [{
+  ftools.evalLiterals ast, [{
     test: (node) -> node.type == 'UnaryExpression' && node.argument.type == 'Literal' && node.operator == '!'
     eval: (node) -> !node.argument.value
   }, {
@@ -18,19 +19,19 @@ exports.formatTree = (ast) ->
     test: (node) -> node.type == 'BinaryExpression' && node.left.type == 'Literal' && node.right.type == 'Literal' && typeof node.left.value == 'string' && typeof node.right.value == 'string' && node.operator == '+'
     eval: (node) -> node.left.value + node.right.value
   }, {
-    test: (node) -> node.type == 'BinaryExpression' && estools.isNumericLiteral(node.left) && estools.isNumericLiteral(node.right) && node.operator in ['+', '-', '*', '%', '/', '<<', '>>', '>>>'] && typeof estools.evalLiteral(node.left) == 'number' && typeof estools.evalLiteral(node.right) == 'number'
-    eval: (node) -> tools.evalBinaryExpression(estools.evalLiteral(node.left), node.operator, estools.evalLiteral(node.right))
+    test: (node) -> node.type == 'BinaryExpression' && ftools.isNumericLiteral(node.left) && ftools.isNumericLiteral(node.right) && node.operator in ['+', '-', '*', '%', '/', '<<', '>>', '>>>'] && typeof ftools.evalLiteral(node.left) == 'number' && typeof ftools.evalLiteral(node.right) == 'number'
+    eval: (node) -> ftools.evalBinaryExpression(ftools.evalLiteral(node.left), node.operator, ftools.evalLiteral(node.right))
   }]
 
   # Ensure member expressions are on the correct format
   estools.traverse ast, ['MemberExpression'], (node) ->
-    if node.property.type == 'Literal' && tools.isValidIdentifier(node.property.value)
+    if node.property.type == 'Literal' && ftools.isValidIdentifier(node.property.value)
       node.computed = false
       node.property = { type: 'Identifier', name: node.property.value }
     if node.property.type == 'Literal' && node.property.value?.toString().match(/^[1-9][0-9]*$/)
       node.computed = true
       node.property = estools.createLiteral(parseInt(node.property.value, 10))
-    if node.property.type == 'Identifier' && tools.isReservedWord(node.property.name)
+    if node.property.type == 'Identifier' && ftools.isReservedWord(node.property.name)
       node.computed = true
       node.property = estools.createLiteral(node.property.name)
 
@@ -54,8 +55,8 @@ exports.formatTree = (ast) ->
           node.test.value = false
 
   # Replace infinities with named constants
-  estools.replaceNegativeInfinities(ast)
-  estools.replacePositiveInfinities(ast)
+  ftools.replaceNegativeInfinities(ast)
+  ftools.replacePositiveInfinities(ast)
 
   # Remove empty statements trailing returns, declarations and expression without semicolons
   estools.traverse ast, ['BlockStatement', 'Program'], (node) ->
@@ -84,6 +85,7 @@ exports.formatTree = (ast) ->
     body = if node.type == 'Program' then node.body else node.body.body
     body.filter((x) -> x.type == 'VariableDeclaration' && x.kind == 'let').forEach (stm) ->
       stm.kind = 'var'
+
 
 
 exports.postFormatTree = (ast) ->
