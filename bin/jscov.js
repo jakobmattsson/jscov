@@ -10,6 +10,7 @@ var argv = optimist
   .describe('version', 'Print the current version number')
   .describe('help', 'Show this help message')
   .describe('expand', 'Expands lazy operators and if-statements to give higher resolution coverage data')
+  .describe('hidden', 'Covers hidden files')
   .describe('conditionals', 'Expands conditional JSCOV-comments to test additional execution paths')
   .alias('version', 'v')
   .alias('help', 'h')
@@ -32,6 +33,7 @@ if (argv._.length != 2) {
 
 jscov.rewriteFolder(argv._[0], argv._[1], {
   expand: argv.expand,
+  hidden: argv.hidden,
   conditionals: argv.conditionals
 }, function(err) {
   if (err) {

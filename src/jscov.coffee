@@ -88,6 +88,7 @@ exports.rewriteFolder = (source, target, options, callback) ->
 
     wrench.readdirSyncRecursive(source).forEach (file) ->
       return if fs.lstatSync(path.join(source, file)).isDirectory() || !file.match(/\.(coffee|js)$/)
+      return if path.basename(file)[0] == '.' && !options.hidden
       try
         exports.rewriteFile(source, file, target, options)
       catch ex
