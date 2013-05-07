@@ -141,19 +141,19 @@ describe "rewriteFolder", ->
   it "should not include hidden files", (done) ->
     jscov.rewriteFolder 'spec/scaffolding/hidden', output + '/hidden-default', {}, (err) ->
       should.not.exist err
-      wrench.readdirSyncRecursive(output + '/hidden-default').should.eql ['subfolder', 'visible.js', 'subfolder/vis.js']
+      wrench.readdirSyncRecursive(output + '/hidden-default').sort().should.eql ['subfolder', 'subfolder/vis.js', 'visible.js']
       done()
 
 
   it "should accept a flag for including hidden files", (done) ->
     jscov.rewriteFolder 'spec/scaffolding/hidden', output + '/hidden-included', { hidden: true }, (err) ->
       should.not.exist err
-      wrench.readdirSyncRecursive(output + '/hidden-included').should.eql ['.hidden.js', 'subfolder', 'visible.js', 'subfolder/.hid.js', 'subfolder/vis.js']
+      wrench.readdirSyncRecursive(output + '/hidden-included').sort().should.eql ['.hidden.js', 'subfolder', 'subfolder/.hid.js', 'subfolder/vis.js', 'visible.js']
       done()
 
 
   it "should accept a flag for explicitly excluding hidden files", (done) ->
     jscov.rewriteFolder 'spec/scaffolding/hidden', output + '/hidden-included', { hidden: false }, (err) ->
       should.not.exist err
-      wrench.readdirSyncRecursive(output + '/hidden-included').should.eql ['subfolder', 'visible.js', 'subfolder/vis.js']
+      wrench.readdirSyncRecursive(output + '/hidden-included').sort().should.eql ['subfolder', 'subfolder/vis.js', 'visible.js']
       done()
