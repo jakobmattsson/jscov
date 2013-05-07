@@ -148,7 +148,7 @@ describe "rewriteFolder", ->
   it "should accept a flag for including hidden files", (done) ->
     jscov.rewriteFolder 'spec/scaffolding/hidden', output + '/hidden-included', { hidden: true }, (err) ->
       should.not.exist err
-      wrench.readdirSyncRecursive(output + '/hidden-included').sort().should.eql ['.hidden.js', 'subfolder', 'subfolder/.hid.js', 'subfolder/vis.js', 'visible.js']
+      wrench.readdirSyncRecursive(output + '/hidden-included').sort().should.eql ['.hidden.js', '.hiddensub', '.hiddensub/.h.js', '.hiddensub/v.js', 'subfolder', 'subfolder/.hid.js', 'subfolder/vis.js', 'visible.js']
       done()
 
 

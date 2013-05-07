@@ -13,6 +13,10 @@ jscoverageFormatting = require './jscoverage-formatting'
 
 
 
+isHidden = (filename) -> filename[0] == '.'
+
+
+
 writeFile = do ->
   sourceMappings = [
     (x) -> x.replace(/&/g, '&amp;')
@@ -88,7 +92,11 @@ exports.rewriteFolder = (source, target, options, callback) ->
 
     wrench.readdirSyncRecursive(source).forEach (file) ->
       return if fs.lstatSync(path.join(source, file)).isDirectory() || !file.match(/\.(coffee|js)$/)
-      return if path.basename(file)[0] == '.' && !options.hidden
+
+      dirs = path.dirname(file).split(path.sep)
+      dirs = dirs.slice(1) if dirs[0] == '.'
+      return if (dirs.some(isHidden) || isHidden(path.basename(file))) && !options.hidden
+
       try
         console.log("Rewriting #{source}/#{file} to #{target}...") if options.verbose
         exports.rewriteFile(source, file, target, options)
