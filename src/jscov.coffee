@@ -90,6 +90,7 @@ exports.rewriteFolder = (source, target, options, callback) ->
       return if fs.lstatSync(path.join(source, file)).isDirectory() || !file.match(/\.(coffee|js)$/)
       return if path.basename(file)[0] == '.' && !options.hidden
       try
+        console.log("Rewriting #{source} to #{target}...") if options.verbose
         exports.rewriteFile(source, file, target, options)
       catch ex
         errors.push({ file: file, ex: ex })
