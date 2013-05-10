@@ -37,33 +37,44 @@ noopExpression = (name) ->
 
 wrapPred = (test, left, right) ->
   type: 'CallExpression'
-  arguments: []
+  arguments: [{
+    type: 'ThisExpression'
+  }, {
+    type: 'Identifier'
+    name: 'arguments'
+  }]
   callee:
-    type: 'FunctionExpression'
-    id: null
-    rest: null
-    generator: false
-    expression: false
-    params: []
-    defaults: []
-    body:
-      type: 'BlockStatement'
-      body: [{
-        type: 'IfStatement'
-        test: test
-        consequent:
-          type: 'ReturnStatement'
-          argument: left
-        alternate:
-          type: 'ReturnStatement'
-          argument: right
-      }]
+    type: 'MemberExpression'
+    computed: false
+    property:
+      type: 'Identifier'
+      name: 'call'
+    object:
+      type: 'FunctionExpression'
+      id: null
+      rest: null
+      generator: false
+      expression: false
+      params: [{ type: 'Identifier', name: 'arguments' }]
+      defaults: []
+      body:
+        type: 'BlockStatement'
+        body: [{
+          type: 'IfStatement'
+          test: test
+          consequent:
+            type: 'ReturnStatement'
+            argument: left
+          alternate:
+            type: 'ReturnStatement'
+            argument: right
+        }]
 
 wrapLogic = (isAnd, left, right, tmpvar) ->
   l = if  isAnd then right else { type: 'Identifier', name: tmpvar }
   r = if !isAnd then right else { type: 'Identifier', name: tmpvar }
   res = wrapPred({ type: 'Identifier', name: tmpvar }, l, r)
-  res.callee.body.body = [{
+  res.callee.object.body.body = [{
     kind: 'var'
     type: 'VariableDeclaration'
     declarations: [{
@@ -71,7 +82,7 @@ wrapLogic = (isAnd, left, right, tmpvar) ->
       id: { type: 'Identifier', name: tmpvar }
       init:  left
     }]
-  }].concat(res.callee.body.body)
+  }].concat(res.callee.object.body.body)
   res
 
 

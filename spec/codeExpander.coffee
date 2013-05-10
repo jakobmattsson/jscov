@@ -24,12 +24,12 @@ cases = [{
     var result = predicate ? v1 : v2;
   '''
   output: '''
-    var result = (function() {
+    var result = ((function(arguments) {
       if (predicate)
         return v1;
       else
         return v2;
-    }());
+    }).call(this, arguments));
   '''
 }, {
   name: 'complex-ternary'
@@ -37,17 +37,17 @@ cases = [{
     var result = predicate ? x+y : pred2 ? f(g(1, 2, 3)) : v3;
   '''
   output: '''
-    var result = (function() {
+    var result = ((function(arguments) {
       if (predicate)
         return x+y;
       else
-        return (function() {
+        return ((function(arguments) {
           if (pred2)
             return f(g(1, 2, 3));
           else
             return v3;
-        }());
-    }());
+        }).call(this, arguments));
+    }).call(this, arguments));
   '''
 }, {
   name: 'ifelse'
@@ -89,13 +89,13 @@ cases = [{
     var x = a() && b();
   '''
   output: '''
-    var x = (function() {
+    var x = ((function(arguments) {
       var __lhs__ = a();
       if (__lhs__)
         return b();
       else
         return __lhs__;
-    }());
+    }).call(this, arguments));
   '''
 }, {
   name: 'and-assign-constant'
@@ -103,12 +103,12 @@ cases = [{
     var x = 5 && b();
   '''
   output: '''
-    var x = (function() {
+    var x = ((function(arguments) {
       if (5)
         return b();
       else
         return 5;
-    }());
+    }).call(this, arguments));
   '''
 }, {
   name: 'and-assign-literal'
@@ -116,12 +116,12 @@ cases = [{
     var x = variable && b();
   '''
   output: '''
-    var x = (function() {
+    var x = ((function(arguments) {
       if (variable)
         return b();
       else
         return variable;
-    }());
+    }).call(this, arguments));
   '''
 }, {
   name: 'or-assign-constant'
@@ -129,12 +129,12 @@ cases = [{
     var x = 5 || b();
   '''
   output: '''
-    var x = (function() {
+    var x = ((function(arguments) {
       if (5)
         return 5;
       else
         return b();
-    }());
+    }).call(this, arguments));
   '''
 }, {
   name: 'or-assign-literal'
@@ -142,12 +142,12 @@ cases = [{
     var x = variable || b();
   '''
   output: '''
-    var x = (function() {
+    var x = ((function(arguments) {
       if (variable)
         return variable;
       else
         return b();
-    }());
+    }).call(this, arguments));
   '''
 }, {
   name: 'or-assign'
@@ -155,13 +155,27 @@ cases = [{
     var x = a() || b();
   '''
   output: '''
-    var x = (function() {
+    var x = ((function(arguments) {
       var __lhs__ = a();
       if (__lhs__)
         return __lhs__;
       else
         return b();
-    }());
+    }).call(this, arguments));
+  '''
+}, {
+  name: 'this-and-arguments-variable'
+  input: '''
+    var x = this || arguments;
+  '''
+  output: '''
+    var x = ((function(arguments) {
+      var __lhs__ = this;
+      if (__lhs__)
+        return __lhs__;
+      else
+        return arguments;
+    }).call(this, arguments));
   '''
 }, {
   name: 'andor-complex'
@@ -172,19 +186,19 @@ cases = [{
   '''
   output: '''
     var __noop__ = function() { return null; };
-    if ((function() {
-      var __lhs__ = (function() {
+    if (((function(arguments) {
+      var __lhs__ = ((function(arguments) {
         var __lhs__ = a();
         if (__lhs__)
           return __lhs__;
         else
           return b();
-      }());
+      }).call(this, arguments));
       if (__lhs__)
         return !c();
       else
         return __lhs__;
-    }())) {
+    }).call(this, arguments))) {
       f();
     } else
       __noop__();
