@@ -91,15 +91,19 @@ exports.rewriteFolder = (source, target, options, callback) ->
     wrench.rmdirSyncRecursive(target, true)
 
     wrench.readdirSyncRecursive(source).forEach (file) ->
-      return if fs.lstatSync(path.join(source, file)).isDirectory() || !file.match(/\.(coffee|js)$/)
+      return if fs.lstatSync(path.join(source, file)).isDirectory()
 
       dirs = path.dirname(file).split(path.sep)
       dirs = dirs.slice(1) if dirs[0] == '.'
       return if (dirs.some(isHidden) || isHidden(path.basename(file))) && !options.hidden
 
       try
-        console.log("Rewriting #{source}/#{file} to #{target}...") if options.verbose
-        exports.rewriteFile(source, file, target, options)
+        if !file.match(/\.(coffee|js)$/)
+          console.log("Rewriting #{source}/#{file} to #{target}...") if options.verbose
+          exports.rewriteFile(source, file, target, options)
+        else
+          console.log("Copying #{source} to #{target}...") if options.verbose
+          fs.createReadStream(source).pipe(fs.createWriteStream(target))
       catch ex
         errors.push({ file: file, ex: ex })
 
