@@ -113,7 +113,7 @@ describe "rewriteFolder", ->
       fs.exists "#{outdir}/valid.js", (exists) ->
         exists.should.be.true
         err.should.be.a 'object'
-        err.message.should.eql 'fail.coffee: missing ) on line 1\nfail.js: Line 2: Unexpected end of input'
+        err.message.should.include 'fail.js: Line 2: Unexpected end of input'
         done()
 
 

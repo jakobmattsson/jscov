@@ -1,15 +1,15 @@
 {
   "name": "jscov",
   "description": "JSCoverage, implemented in JavaScript",
-  "version": "0.5.4",
+  "version": "0.5.5",
   "author": "Jakob Mattsson <jakob.mattsson@gmail.com> (jakobmattsson.se)",
   "main": "./lib/jscov.js",
   "bin": {
     "jscov": "./bin/jscov.js"
   },
   "engines": {
-    "npm": ">= 1.1",
-    "node": ">= 0.8"
+    "npm": ">= 1.1 < 2",
+    "node": ">= 0.8 < 0.12"
   },
   "scripts": {
     "test": "mocha --timeout 20000 --compilers coffee:coffee-script spec/*.coffee",
@@ -19,16 +19,16 @@
     "prestart": "coffee -co lib src"
   },
   "dependencies": {
-    "coffee-script": "1.4.0",
-    "wrench": "1.4.4",
-    "optimist": "0.3.5",
-    "underscore": "1.4.3",
-    "esprima": "1.0.2",
-    "escodegen": "0.0.15"
+    "coffee-script": ">= 1.4.0 < 2",
+    "wrench": ">= 1.4.4 < 2",
+    "optimist": ">= 0.3.5 < 0.7",
+    "underscore": ">= 1.4.3 < 2",
+    "esprima": ">= 1.0.2 < 2",
+    "escodegen": ">= 0.0.15 < 0.0.16"
   },
   "devDependencies": {
-    "mocha-term-cov-reporter": "0.1.0",
-    "should": "1.2.1",
-    "mocha": "1.8.1"
+    "mocha-term-cov-reporter": ">= 0.1.0 < 0.2",
+    "should": ">= 1.2.1 < 2",
+    "mocha": ">= 1.8.1 < 2"
   }
 }
