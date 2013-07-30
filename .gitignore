@@ -20,3 +20,9 @@ expected.js
 
 
 npm-debug.log
+
+!.gitignore
+!.npmignore
+!.bowerrc
+!.travis.yml
+
