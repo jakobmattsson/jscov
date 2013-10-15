@@ -5,6 +5,7 @@ esprima = require 'esprima'
 escodegen = require 'escodegen'
 wrench = require 'wrench'
 coffee = require 'coffee-script'
+async = require 'async'
 tools = require './tools'
 estools = require './estools'
 conditionals = require './conditionals'
@@ -14,6 +15,26 @@ jscoverageFormatting = require './jscoverage-formatting'
 
 
 isHidden = (filename) -> filename[0] == '.'
+
+
+
+copyFile = (source, target, cb) ->
+  cbCalled = false
+
+  done = (err) ->
+    unless cbCalled
+      cb(err)
+      cbCalled = true
+
+  rd = fs.createReadStream(source)
+  rd.on("error", done)
+
+  wr = fs.createWriteStream(target)
+  wr.on("error", done)
+
+  wr.on "close", (ex) -> done()
+
+  rd.pipe(wr)
 
 
 
@@ -83,39 +104,46 @@ exports.rewriteFile = (sourceFileBase, sourceFile, targetDir, options) ->
 exports.rewriteFolder = (source, target, options, callback) ->
   errors = []
 
+  if !callback?
+    callback = options
+    options = {}
+
   try
-    if !callback?
-      callback = options
-      options = {}
-
     wrench.rmdirSyncRecursive(target, true)
-
-    wrench.readdirSyncRecursive(source).forEach (file) ->
-      return if fs.lstatSync(path.join(source, file)).isDirectory()
-
-      dirs = path.dirname(file).split(path.sep)
-      dirs = dirs.slice(1) if dirs[0] == '.'
-      return if (dirs.some(isHidden) || isHidden(path.basename(file))) && !options.hidden
-
-      try
-        if !file.match(/\.(coffee|js)$/)
-          console.log("Rewriting #{source}/#{file} to #{target}...") if options.verbose
-          exports.rewriteFile(source, file, target, options)
-        else
-          console.log("Copying #{source} to #{target}...") if options.verbose
-          fs.createReadStream(source).pipe(fs.createWriteStream(target))
-      catch ex
-        errors.push({ file: file, ex: ex })
-
+    files = wrench.readdirSyncRecursive(source)
   catch ex
     callback(ex)
     return
 
-  if errors.length > 0
-    failures = _.sortBy(errors, (x) -> x.file).map((x) -> x.file + ": " + (x.ex.message || 'UNKNOWN')).join('\n')
-    callback(new Error(failures))
-  else
-    callback()
+  async.forEach files, (file, callback) ->
+
+    return callback() if fs.lstatSync(path.join(source, file)).isDirectory()
+
+    dirs = path.dirname(file).split(path.sep)
+    dirs = dirs.slice(1) if dirs[0] == '.'
+    return callback() if (dirs.some(isHidden) || isHidden(path.basename(file))) && !options.hidden
+
+    if file.match(/\.(coffee|js)$/)
+      try
+        console.log("Rewriting #{source}/#{file} to #{target}...") if options.verbose
+        exports.rewriteFile(source, file, target, options)
+      catch ex
+        errors.push({ file: file, ex: ex })
+        callback()
+        return
+      callback()
+    else
+      console.log("Copying #{source} to #{target}...") if options.verbose
+      copyFile(path.join(source, file), path.join(target, file), callback)
+
+  , (err) ->
+    return callback(err) if err?
+
+    if errors.length > 0
+      failures = _.sortBy(errors, (x) -> x.file).map((x) -> x.file + ": " + (x.ex.message || 'UNKNOWN')).join('\n')
+      callback(new Error(failures))
+    else
+      callback()
 
 
 
