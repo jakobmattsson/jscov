@@ -13,7 +13,7 @@ deploy:
   on:
     tags: true
     branch: master
-    repo: jakobmattsson/mocha-term-cov-reporter
+    repo: jakobmattsson/jscov
 before_script:
   - git clone git://github.com/visionmedia/node-jscoverage.git
   - cd node-jscoverage
