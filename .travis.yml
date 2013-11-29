@@ -4,6 +4,16 @@ node_js:
 branches:
   only:
     - master
+deploy:
+  provider: npm
+  email: jakob.mattsson@gmail.com
+  skip_cleanup: true
+  api_key:
+    secure: HPxPQLEQzCC1lzfHLJ/HfF+6nsOQkchPynslM0daQXSPxEMF2N+qSJkBW414mAEcjfBWISF1cBCnZK308ZQ+zzaSaHM1giRwZoTMR+gdvKkEre0J9984Z4b4MR7xOZnkKFtDZ0UVGLVCC6E7fRTlIaksiePrFA4kH+4bZA46vI8=
+  on:
+    tags: true
+    branch: master
+    repo: jakobmattsson/mocha-term-cov-reporter
 before_script:
   - git clone git://github.com/visionmedia/node-jscoverage.git
   - cd node-jscoverage
