@@ -23,4 +23,4 @@ before_script:
 notifications:
   hipchat:
     rooms:
-      secure: Qvhy3+L0ZCyQrqt+n6edGMF6dpZ3xD52w5ETciBR/+f8h8cOCf7ymLWEozMcPCZhMgDZsNgH9qrtURFJo7ziP6164N+vHffXjFBAm7voGUCYWtKkLwljCecr8W+AeZ/tUeGOZSXgGSMlLQlk53NMtW0ZHzwLS1Zr18JEbGvmIWE=
+      secure: CX+Y2Pw3y/x/da+WbtOnrIT2FubHGA8EBT6s6UcMQw0Abgzy+NRPSVpGdMN+FrPiHTtlYaWS0i/6wsO1CpVOtkHIKPhGXFZMQOV2scajl6NyUq2arUzzxf4JK6Dr+1v3Db4GyMqYQdYNQEBW+r0Kl99fvAWMg4Fxwe+mcpaQXkk=
