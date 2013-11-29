@@ -20,3 +20,7 @@ before_script:
   - ./configure
   - make
   - cd ..
+notifications:
+  hipchat:
+    rooms:
+      secure: Qvhy3+L0ZCyQrqt+n6edGMF6dpZ3xD52w5ETciBR/+f8h8cOCf7ymLWEozMcPCZhMgDZsNgH9qrtURFJo7ziP6164N+vHffXjFBAm7voGUCYWtKkLwljCecr8W+AeZ/tUeGOZSXgGSMlLQlk53NMtW0ZHzwLS1Zr18JEbGvmIWE=
