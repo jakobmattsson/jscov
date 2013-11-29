@@ -1,9 +1,9 @@
 language: node_js
 node_js:
-  - '0.10'
+- '0.10'
 branches:
   only:
-    - master
+  - master
 deploy:
   provider: npm
   email: jakob.mattsson@gmail.com
@@ -15,11 +15,11 @@ deploy:
     branch: master
     repo: jakobmattsson/jscov
 before_script:
-  - git clone git://github.com/visionmedia/node-jscoverage.git
-  - cd node-jscoverage
-  - ./configure
-  - make
-  - cd ..
+- git clone git://github.com/visionmedia/node-jscoverage.git
+- cd node-jscoverage
+- ./configure
+- make
+- cd ..
 notifications:
   hipchat:
     rooms:
