@@ -26,4 +26,3 @@ notifications:
       secure: CX+Y2Pw3y/x/da+WbtOnrIT2FubHGA8EBT6s6UcMQw0Abgzy+NRPSVpGdMN+FrPiHTtlYaWS0i/6wsO1CpVOtkHIKPhGXFZMQOV2scajl6NyUq2arUzzxf4JK6Dr+1v3Db4GyMqYQdYNQEBW+r0Kl99fvAWMg4Fxwe+mcpaQXkk=
     template:
       - "%{repository}#%{build_number} (%{branch} - %{commit} - %{author}): %{message}\nChange view: %{compare_url}\nBuild details: %{build_url}"
-    on_start: true
