@@ -7,6 +7,7 @@ branches:
 deploy:
   provider: npm
   email: jakob.mattsson@gmail.com
+  skip_cleanup: true
   api_key:
     secure: p3CNpPeoAFuKAqFcfC6FoANm/6jULODvqxyzo3R2YzFiTfsA+u6rtl+orJqY5B4Yn4pNs+CFu29eeYlqBHXArRw0otjkznNh9QI/cDiRIE2LPE9bnw+HjIUd/IabTGdVLI83WjqkFLAgsZvPOKqzVmIcKVJbNUDozVoh7lHoS/0=
   on:
