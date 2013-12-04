@@ -6,7 +6,7 @@ deploy:
   email: jakob.mattsson@gmail.com
   skip_cleanup: true
   api_key:
-    secure: p3CNpPeoAFuKAqFcfC6FoANm/6jULODvqxyzo3R2YzFiTfsA+u6rtl+orJqY5B4Yn4pNs+CFu29eeYlqBHXArRw0otjkznNh9QI/cDiRIE2LPE9bnw+HjIUd/IabTGdVLI83WjqkFLAgsZvPOKqzVmIcKVJbNUDozVoh7lHoS/0=
+    secure: XYWkWt2IAFT4qcZpb+UThY4LZiUzqXUC58vUq0CZ6/fVt0Bd6G7J4sMdDFmCEvxEiPDiWWvCBI2NvIdywIA3pnpA1UWpkbNbm4Vz4/8DU3Q5zc6MD6wA1lqGDEyYAKt999jizMSRd7UBGkHJvetph/JTgo+aSk6BXR9nAmUwnx4=
   on:
     tags: true
     branch: master
