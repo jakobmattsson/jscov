@@ -17,10 +17,9 @@
   },
   "scripts": {
     "test": "mocha --timeout 20000 --compilers coffee:coffee-script spec/*.coffee",
-    "coverage": "coffee -co lib src && sh scripts/pretest.sh && sh scripts/run-jscoverage.sh lib .cov && SRC_DIR=.cov mocha --compilers coffee:coffee-script --reporter mocha-term-cov-reporter spec/*.coffee",
+    "test-coverage": "npm run pretest && sh scripts/run-jscoverage.sh lib .cov && SRC_DIR=.cov mocha --compilers coffee:coffee-script --reporter mocha-term-cov-reporter --recursive spec",
     "pretest": "coffee -co lib src && sh scripts/pretest.sh",
-    "prepublish": "coffee -co lib src",
-    "prestart": "coffee -co lib src"
+    "prepublish": "coffee -co lib src"
   },
   "dependencies": {
     "async": "^0.2.9",
