@@ -1,7 +1,7 @@
 {
   "name": "jscov",
   "description": "JSCoverage, implemented in JavaScript",
-  "version": "0.6.11",
+  "version": "0.6.12",
   "author": "Jakob Mattsson <jakob.mattsson@gmail.com> (jakobmattsson.se)",
   "main": "./lib/jscov.js",
   "bin": {
