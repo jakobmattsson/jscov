@@ -2,3 +2,5 @@ src
 node_modules
 scripts
 spec
+.npmignore
+.travis.yml
