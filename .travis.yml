@@ -8,7 +8,6 @@ deploy:
   api_key:
     secure: XYWkWt2IAFT4qcZpb+UThY4LZiUzqXUC58vUq0CZ6/fVt0Bd6G7J4sMdDFmCEvxEiPDiWWvCBI2NvIdywIA3pnpA1UWpkbNbm4Vz4/8DU3Q5zc6MD6wA1lqGDEyYAKt999jizMSRd7UBGkHJvetph/JTgo+aSk6BXR9nAmUwnx4=
   on:
-    tags: true
     branch: master
     repo: jakobmattsson/jscov
 notifications:
