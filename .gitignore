@@ -27,3 +27,4 @@ npm-debug.log
 !.bowerrc
 !.travis.yml
 
+.*
