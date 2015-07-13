@@ -107,8 +107,8 @@ describe "rewriteFolder", ->
     jscov.rewriteFolder 'spec/scaffolding/fail', outdir, (err) ->
       fs.exists "#{outdir}/valid.js", (exists) ->
         exists.should.be.true
-        err.should.be.a 'object'
-        err.message.should.include 'fail.js: Line 2: Unexpected end of input'
+        err.should.be.an.instanceOf Error
+        err.message.should.containEql 'fail.js: Line 2: Unexpected end of input'
         done()
 
 
